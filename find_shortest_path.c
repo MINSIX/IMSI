@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "robot_moving_event.h"
 
 #define ROW 5
 #define COL 9
 
+// TOOD : D231 강의실 다시 확인 후, 한 블럭당 한 인덱스를 맡도록 배열 크기 조정
 int D231[ROW][COL] = {
     { 8, 9,  0, 10,11,12, 0, 13,14},
     {-1,-1,  0, -1,-1,-1, 0, -1,-1},
@@ -74,98 +76,110 @@ void printPath(Node* node) {
     printf("(%d, %d) -> ", node->row, node->col);
 }
 
-void printDirection(Node* node) {
+void enqueueDirection(Node* node) {
     if (node->parent == NULL) return;
-    printDirection(node->parent);
-    printf("(%d) -> ", node->direction);
+    enqueueDirection(node->parent);
+    enqueue(&moveCommandQueue, &(node->direction));
 }
 
-void aStar(int startRow, int startCol, int tableNum) {
-    tabelNumToCoordinate(tableNum);
+void aStar() {
+    printf("start astar\n");
+    while (1) {
+        if (isEmpty(&findPathQueue)) continue;
 
-    Node* shouldTravelArr[ROW * COL];
-    int shouldTravelArrSize = 0;
-    Node* visitedArr[ROW * COL];
-    int visitedArrSize = 0;
+        FindPathTask* findPathTask = dequeue(&findPathQueue);
+        int startRow = findPathTask->startRow;
+        int startCol = findPathTask->startCol;
+        int tableNum = findPathTask->tableNum;
 
-    Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), 0, NULL);
-    shouldTravelArr[shouldTravelArrSize++] = startNode;
+        tabelNumToCoordinate(tableNum);
 
-    while (shouldTravelArrSize > 0) {
-        // 가장 낮은 f 값을 가진 노드 찾기
-        int minIndex = 0;
-        for (int i = 1; i < shouldTravelArrSize; i++) {
-            if (shouldTravelArr[i]->f < shouldTravelArr[minIndex]->f) {
-                minIndex = i;
-            }
-        }
+        Node* shouldTravelArr[ROW * COL];
+        int shouldTravelArrSize = 0;
+        Node* visitedArr[ROW * COL];
+        int visitedArrSize = 0;
 
-        Node* currentNode = shouldTravelArr[minIndex];
+        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), 0, NULL);
+        shouldTravelArr[shouldTravelArrSize++] = startNode;
 
-        // 목표에 도달했는지 확인
-        if (currentNode->row == goalRow && currentNode->col == goalCol) {
-            printf("최단 경로: ");
-            printPath(currentNode);
-            printf("END\n");
-
-            printf("방향 : ");
-            printDirection(currentNode);
-            printf("END\n");
-            return;
-        }
-
-        // 현재 노드를 openList에서 제거하고 closedList에 추가
-        for (int i = minIndex; i < shouldTravelArrSize - 1; i++) {
-            shouldTravelArr[i] = shouldTravelArr[i + 1];
-        }
-        shouldTravelArrSize--;
-        visitedArr[visitedArrSize++] = currentNode;
-
-        // 이웃 노드 탐색
-        int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // 상하좌우
-        for (int i = 0; i < 4; i++) {
-            int newRow = currentNode->row + directions[i][0];
-            int newCol = currentNode->col + directions[i][1];
-
-            if (isValid(newRow, newCol)) {
-                // 이미 방문한 적 있는 노드인지 확인
-                int foundInClosed = 0;
-                for (int j = 0; j < visitedArrSize; j++) {
-                    if (visitedArr[j]->row == newRow && visitedArr[j]->col == newCol) {
-                        foundInClosed = 1;
-                        break;
-                    }
+        while (shouldTravelArrSize > 0) {
+            // 가장 낮은 f 값을 가진 노드 찾기
+            int minIndex = 0;
+            for (int i = 1; i < shouldTravelArrSize; i++) {
+                if (shouldTravelArr[i]->f < shouldTravelArr[minIndex]->f) {
+                    minIndex = i;
                 }
-                if (foundInClosed) continue;
+            }
 
-                // 출발 노드부터 현재 노드까지 거리 계산
-                int gNew = currentNode->g + 1;
-                // 휴리스틱 계산
-                int hNew = heuristic(newRow, newCol, goalRow, goalCol);
-                Node* newNode = createNode(newRow, newCol, gNew, hNew, i+1, currentNode);
+            Node* currentNode = shouldTravelArr[minIndex];
 
-                // openList에 있는지 확인
-                // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
-                int foundInOpen = 0;
-                for (int j = 0; j < shouldTravelArrSize; j++) {
-                    if (shouldTravelArr[j]->row == newRow && shouldTravelArr[j]->col == newCol) {
-                        foundInOpen = 1;
-                        if (gNew < shouldTravelArr[j]->g) {
-                            shouldTravelArr[j]->g = gNew;
-                            shouldTravelArr[j]->f = gNew + hNew;
-                            shouldTravelArr[j]->parent = currentNode;
+            // 목표에 도달했는지 확인
+            if (currentNode->row == goalRow && currentNode->col == goalCol) {
+                printf("destionation access\n");
+
+                pthread_mutex_lock(&enqueueCommendMutex);
+                
+                printf("start enqueue direction\n");
+                enqueueDirection(currentNode);
+                startMove();
+                pthread_mutex_unlock(&enqueueCommendMutex);
+                return;
+            }
+
+            // 현재 노드를 openList에서 제거하고 closedList에 추가
+            for (int i = minIndex; i < shouldTravelArrSize - 1; i++) {
+                shouldTravelArr[i] = shouldTravelArr[i + 1];
+            }
+            shouldTravelArrSize--;
+            visitedArr[visitedArrSize++] = currentNode;
+
+            // 이웃 노드 탐색
+            int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // 상하좌우
+            for (int i = 0; i < 4; i++) {
+                int newRow = currentNode->row + directions[i][0];
+                int newCol = currentNode->col + directions[i][1];
+
+                if (isValid(newRow, newCol)) {
+                    // 이미 방문한 적 있는 노드인지 확인
+                    int foundInClosed = 0;
+                    for (int j = 0; j < visitedArrSize; j++) {
+                        if (visitedArr[j]->row == newRow && visitedArr[j]->col == newCol) {
+                            foundInClosed = 1;
+                            break;
                         }
-                        break;
                     }
-                }
-                if (!foundInOpen) {
-                    shouldTravelArr[shouldTravelArrSize++] = newNode;
+                    if (foundInClosed) continue;
+
+                    // 출발 노드부터 현재 노드까지 거리 계산
+                    int gNew = currentNode->g + 1;
+                    // 휴리스틱 계산
+                    int hNew = heuristic(newRow, newCol, goalRow, goalCol);
+                    Node* newNode = createNode(newRow, newCol, gNew, hNew, i+1, currentNode);
+
+                    // openList에 있는지 확인
+                    // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
+                    int foundInOpen = 0;
+                    for (int j = 0; j < shouldTravelArrSize; j++) {
+                        if (shouldTravelArr[j]->row == newRow && shouldTravelArr[j]->col == newCol) {
+                            foundInOpen = 1;
+                            if (gNew < shouldTravelArr[j]->g) {
+                                shouldTravelArr[j]->g = gNew;
+                                shouldTravelArr[j]->f = gNew + hNew;
+                                shouldTravelArr[j]->parent = currentNode;
+                            }
+                            break;
+                        }
+                    }
+                    if (!foundInOpen) {
+                        shouldTravelArr[shouldTravelArrSize++] = newNode;
+                    }
                 }
             }
         }
-    }
 
-    printf("목표에 도달할 수 없습니다.\n");
+        printf("목표에 도달할 수 없습니다.\n");
+    }
+    
 }
 
 
