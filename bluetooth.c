@@ -1,59 +1,66 @@
-#include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <wiringPi.h>
-#include <wiringSerial.h>
-#include <string.h>
+#include "bluetooth.h"
 
-#define BAUD_RATE 115200 //블루투스의 보율이 바뀔 경우 이 값을 변경해야함
-static const char* UART2_DEV = ＂/dev/ttyAMA2＂; //RPi4: UART2 연결을 위한 장치 파일
-//static const char* UART1_DEV = “/dev/ttyAMA1”; //RPi5: UART1 연결을 위한 장치 파일
-
-unsigned char serialRead(const int fd);
-void serialWrite(const int fd, const unsigned char c);
-void serialWriteBytes (const int fd, const char *s);
-//여러 바이트의 데이터를 씀
-
-void serialWriteBytes (const int fd, const char *s)
-{
-    write (fd, s, strlen (s)) ;
-}
-//1바이트 데이터를 읽음
 unsigned char serialRead(const int fd)
 {
     unsigned char x;
-        if(read (fd, &x, 1) != 1) //read 함수를 통해 1바이트 읽어옴
-    return -1;
-return x; //읽어온 데이터 반환
+    if (read(fd, &x, 1) != 1) // 1바이트 읽기
+        return -1;
+    return x; // 읽은 데이터 반환
 }
-//1바이트 데이터를 씀
+
 void serialWrite(const int fd, const unsigned char c)
 {
-    write (fd, &c, 1); //write 함수를 통해 1바이트 씀
+    write(fd, &c, 1); // 1바이트 쓰기
 }
-int bluetoothInput ()
+
+void serialWriteBytes(const int fd, const char *s)
 {
-    int fd_serial ;
+    write(fd, s, strlen(s)); // 여러 바이트 데이터 쓰기
+}
+
+int bluetoothInput(void)
+{
+    int fd_serial;
     unsigned char dat;
-    char buf[100];
-    if (wiringPiSetupGpio () < 0) return -1 ;
-    if ((fd_serial = serialOpen (UART2_DEV, BAUD_RATE)) < 0) //UART2 포트 오픈
-    {
-        printf ("Unable to open serial device.\n") ;
+    char buf[100] = {0};
+    int return_;
+    int i = 0;
+
+    if (wiringPiSetupGpio() < 0) {
+        printf("WiringPi setup failed.\n");
         return -1;
     }
-    while(serialDataAvail (fd_serial)){ //버퍼에 읽을 데이터가 있을 때까지 반복
-        dat = serialRead (fd_serial); //버퍼에서 1바이트 값을 읽음
-        printf ("%c", dat) ; //읽은 데이터 콘솔에 출력
-        if(dat=='\n'){
-            angle = atof(buf);
+
+    if ((fd_serial = serialOpen(UART2_DEV, BAUD_RATE)) < 0) {
+        printf("Unable to open serial device.\n");
+        return -1;
+    }
+
+    // 시리얼 데이터가 올 때까지 대기
+    while (!serialDataAvail(fd_serial)) {
+        usleep(1000); // CPU 과부하를 방지하기 위해 잠시 대기
+    }
+
+    while (serialDataAvail(fd_serial)) {
+        dat = serialRead(fd_serial); // 1바이트 데이터 읽기
+        //printf("%c", dat); // 읽은 데이터 콘솔에 출력
+        if (dat == '\n') {
+            buf[i] = '\0'; // 버퍼 종료
+            return_ = atoi(buf); // 버퍼의 숫자 문자열을 정수로 변환
             break;
-        }
-        else {
-            buff[i++] = dat;
+        } else {
+            buf[i++] = dat; // 버퍼에 데이터 저장
         }
     }
-    printf("\n");
-    delay (10);
-    return 0;
+
+    //printf("[1] %d [2]", return_);
+    return return_; // 읽은 정수 값을 반환
+}
+
+int bluetoothGate(void){
+    int input = 0;
+    do{
+        input = bluetoothInput();
+    }while(input == 0);
+    return input;
 }
