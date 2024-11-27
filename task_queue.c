@@ -16,7 +16,7 @@ int isEmpty(TaskQueue* q) {
 
 // 큐가 가득 찼는지 확인
 int isFull(TaskQueue* q) {
-    return q->rear == MAX_SIZE - 1;
+    return q->rear == MAX_TASK_SIZE - 1;
 }
 
 // 큐에 요소 추가

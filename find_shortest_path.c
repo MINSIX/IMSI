@@ -3,16 +3,76 @@
 #include <math.h>
 #include "robot_moving_event.h"
 
-#define ROW 5
-#define COL 9
+#define D229_ROW 18
+#define D229_COL 5
 
-// TOOD : D231 강의실 다시 확인 후, 한 블럭당 한 인덱스를 맡도록 배열 크기 조정
-int D231[ROW][COL] = {
-    { 8, 9,  0, 10,11,12, 0, 13,14},
-    {-1,-1,  0, -1,-1,-1, 0, -1,-1},
-    { 1, 2,  0,  3, 4, 5, 0,  6, 7},
-    {-1,-1,  0, -1,-1,-1, 0, -1,-1},
-    {-1,-1, -1, -1,-1,-1, 0, -1,-1}
+#define D230_ROW 16
+#define D230_COL 5
+
+#define D231_ROW 16
+#define D231_COL 5
+
+int nowRow = D231_ROW - 1;
+int nowCol = D231_COL - 2;
+
+int D229[D229_ROW][D229_COL] = {
+    {-1,  0,  0, 0, -1},
+    {24,  0, 16, 0,  8},
+    {-1,  0,  0, 0, -1},
+    {23,  0, 15, 0,  7},
+    {-1,  0, -1, 0, -1},
+    {22,  0, 14, 0,  6},
+    {-1,  0, -1, 0, -1},
+    {21,  0, 13, 0,  5},
+    {-1,  0, -1, 0, -1},
+    {20,  0, 12, 0,  4},
+    {-1,  0, -1, 0, -1},
+    {19,  0, 11, 0,  3},
+    {-1,  0, -1, 0, -1},
+    {18,  0, 10, 0,  2},
+    {-1,  0, -1, 0, -1},
+    {17,  0,  9, 0,  1},
+    {-1,  0, -1, 0, -1},
+    {-1, -1, -1, 0, -1}
+};
+
+int D230[D230_ROW][D230_COL] = {
+    {-1,  0,  0, 0, -1},
+    {21,  0, 14, 0,  7},
+    {-1,  0, -1, 0, -1},
+    {20,  0, 13, 0,  6},
+    {-1,  0, -1, 0, -1},
+    {19,  0, 12, 0,  5},
+    {-1,  0, -1, 0, -1},
+    {18,  0, 11, 0,  4},
+    {-1,  0, -1, 0, -1},
+    {17,  0, 10, 0,  3},
+    {-1,  0, -1, 0, -1},
+    {16,  0,  9, 0,  2},
+    {-1,  0, -1, 0, -1},
+    {15,  0,  8, 0,  1},
+    {-1,  0, -1, 0, -1},
+    {-1, -1, -1, 0, -1}
+};
+
+
+int D231[D231_ROW][D231_COL] = {
+    {-1,  0,  0, 0, -1},
+    {21,  0, 14, 0,  7},
+    {-1,  0, -1, 0, -1},
+    {20,  0, 13, 0,  6},
+    {-1,  0, -1, 0, -1},
+    {19,  0, 12, 0,  5},
+    {-1,  0, -1, 0, -1},
+    {18,  0, 11, 0,  4},
+    {-1,  0, -1, 0, -1},
+    {17,  0, 10, 0,  3},
+    {-1,  0, -1, 0, -1},
+    {16,  0,  9, 0,  2},
+    {-1,  0, -1, 0, -1},
+    {15,  0,  8, 0,  1},
+    {-1,  0, -1, 0, -1},
+    {-1, -1, -1, 0, -1},
 };
 
 int goalRow = 0;
@@ -20,8 +80,8 @@ int goalCol = 0;
 
 void tabelNumToCoordinate(int tableNum) {
     int isBreak = 0;
-    for (int i = 0 ; i < ROW ; i++) {
-        for (int j = 0 ; j < COL ; j++) {
+    for (int i = 0 ; i < D231_ROW ; i++) {
+        for (int j = 0 ; j < D231_COL ; j++) {
             if (D231[i][j] == tableNum) {
                 goalRow = i;
                 goalCol = j;
@@ -61,7 +121,7 @@ Node* createNode(int row, int col, int g, int h, int direction, Node* parent) {
 }
 
 int isValid(int row, int col) {
-    return (row >= 0 && row < ROW && col >= 0 && col < COL && D231[row][col] != -1);
+    return (row >= 0 && row < D231_ROW && col >= 0 && col < D231_COL && D231[row][col] != -1);
 }
 
 int heuristic(int row, int col, int goalRow, int goalCol) {
@@ -88,15 +148,15 @@ void aStar() {
         if (isEmpty(&findPathQueue)) continue;
 
         FindPathTask* findPathTask = dequeue(&findPathQueue);
-        int startRow = findPathTask->startRow;
-        int startCol = findPathTask->startCol;
+        int startRow = nowRow;
+        int startCol = nowCol;
         int tableNum = findPathTask->tableNum;
 
         tabelNumToCoordinate(tableNum);
 
-        Node* shouldTravelArr[ROW * COL];
+        Node* shouldTravelArr[D231_ROW * D231_COL];
         int shouldTravelArrSize = 0;
-        Node* visitedArr[ROW * COL];
+        Node* visitedArr[D231_ROW * D231_COL];
         int visitedArrSize = 0;
 
         Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), 0, NULL);

@@ -2,27 +2,33 @@
 #define __ROBOT_MOVING_ENVENT_H__ // 헤더 가드 정의
 
 #include <pthread.h>
-#define MAX_SIZE 100 // 큐의 최대 크기
+
+#define MAX_TASK_SIZE 100 // 큐의 최대 크기
 
 #define DEFAULT_START_ROW 4
 #define DEFAULT_START_COL 6
 
 typedef struct TaskQueue{
-    void* task[MAX_SIZE];
+    void* task[MAX_TASK_SIZE];
     int front;
     int rear;
     pthread_mutex_t mutex;
 } TaskQueue;
 
 typedef struct FindPathTask {
-    int startRow;
-    int startCol;
     int tableNum;
 } FindPathTask;
 
 extern TaskQueue findPathQueue;
 extern TaskQueue moveCommandQueue;
 extern pthread_mutex_t enqueueCommendMutex;
+
+extern int nowRow;
+extern int nowCol;
+
+extern double roll;
+extern double pitch;
+extern double yaw;
 
 extern void aStar();
 
