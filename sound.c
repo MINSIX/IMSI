@@ -1,37 +1,46 @@
 #include "sound.h"
 
 
-void arrivalMusicPlay()
+void arrivalMusicPlay(int inmode)
 {
     int i;
     softToneCreate (GPIO);
 
     for(i = 0 ; i < ARRIVAL_NOTES; i++)
     {
+        if(mode != inmode){
+            return
+        }
         softToneWrite (GPIO, arrivalNotes[i]); //
         delay (250); //
     }
 }
 
-void dangerMusicPlay()
+void dangerMusicPlay(int inmode)
 {
     int i;
     softToneCreate (GPIO);
 
     for(i = 0 ; i < DANGER_NOTES; i++)
     {
+        if(mode != inmode){
+            return
+        }
         softToneWrite (GPIO, dangerNotes[i]); //
         delay (dangerDurations[i]); //
     }
 }
 
-void moveMusicPlay(){
+void moveMusicPlay(int inmode){
 
     int i;
     softToneCreate (GPIO);
     
     for(i = 0 ; i < MOVE_NOTES; i++)
     {
+        if(mode != inmode){
+            return
+        }
         softToneWrite (GPIO, moveNotes[i]); //
         delay (moveNoteDuration[i]); //
     }
@@ -45,19 +54,19 @@ void stopMusic(){
 void managerMusic(int mode) {
     switch (mode) {
         case 0: // 음악 멈춤
-            stopMusic();
+            stopMusic(mode);
             break;
 
         case 1: // 도착 음악 재생
-            arrivalMusicPlay();
+            arrivalMusicPlay(mode);
             break;
 
         case 2: // 위험 음악 재생
-            dangerMusicPlay();
+            dangerMusicPlay(mode);
             break;
 
         case 3: // 이동 음악 재생
-            moveMusicPlay();
+            moveMusicPlay(mode);
             break;
 
         default:

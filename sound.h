@@ -11,6 +11,8 @@
 #define DANGER_NOTES 12
 #define GPIO 18
 
+extern int soundmode;
+
 static int arrivalNotes[ARRIVAL_NOTES] = {
 391,415,440,391,415,440,391,415,440,523
 };

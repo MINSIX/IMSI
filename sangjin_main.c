@@ -10,12 +10,16 @@
 
 // Sound.h 확인용
 #include "sound.h"
+#include "bluetooth.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "robot_moving_event.h"
 
-int mode = 0; // 음악 모드 (0: 멈춤, 1: 도착, 2: 위험, 3: 이동)
+int soundmode = 0; // 음악 모드 (0: 멈춤, 1: 도착, 2: 위험, 3: 이동)
+
+
 
 // managerMusic을 스레드에서 실행
 #include <pthread.h>
@@ -32,46 +36,79 @@ void *musicThread(void *arg) {
     }
     return NULL;
 }
-int main(int argc, char **argv) {
-    pthread_t threadId;
 
+void *bluetoothThread(void *arg) {
+    while (1) {
+        input = bluetoothGate()
+        FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+        findPathTask->tableNum = input;
+        enqueue(&findPathQueue, findPathTask);
+    }
+    return NULL;
+}
+
+
+int main(int argc, char **argv) {
     // GPIO 초기화
     wiringPiSetupGpio();
 
+    // Mutex 초기화
+    thread_mutex_init(&modeMutex, NULL);
+    int num_threads = 2;  // 생성할 스레드 개수
+    pthread_t threads[num_threads];
+
+
+
     // 사운드 관리 스레드 시작
-    if (pthread_create(&threadId, NULL, musicThread, NULL) != 0) {
-        perror("스레드 생성 실패");
+    if (pthread_create(&threads[0], NULL, musicThread, NULL) != 0) {
+        perror("사운드 스레드 생성 실패");
+        return -1;
+    }
+    if (pthread_create(&&threads[1], NULL, bluetoothThread, NULL) != 0) {
+        perror("블루투스 스레드 생성 실패");
         return -1;
     }
 
-    printf("사운드 테스트 프로그램\n");
-    printf("모드를 선택하세요:\n");
-    printf("0: 음악 멈춤\n");
-    printf("1: 도착 음악 재생\n");
-    printf("2: 위험 음악 재생\n");
-    printf("3: 이동 음악 재생\n");
-    printf("Ctrl+C로 종료\n");
-
-    // 사용자 입력 루프
-    pthread_mutex_init(&modeMutex, NULL);
-
-    // 사용자 입력 루프
-    while (1) {
-        int newMode;
-        printf("모드 입력: ");
-        scanf("%d", &newMode);
-
-        if (newMode < 0 || newMode > 3) {
-            printf("잘못된 모드 입력. 0~3 사이 값을 입력하세요.\n");
-        } else {
-            pthread_mutex_lock(&modeMutex); // 뮤텍스 잠금
-            mode = newMode;
-            pthread_mutex_unlock(&modeMutex); // 뮤텍스 해제
-            printf("현재 모드: %d\n", mode);
+    
+    for(int i = 0; i < num_threads; i++){
+      if (pthread_join(threads[i], NULL) != 0) {
+            perror("pthread_join failed");
+            exit(EXIT_FAILURE);
         }
     }
-
-    pthread_join(threadId, NULL);
     pthread_mutex_destroy(&modeMutex);
     return 0;
 }
+
+
+
+
+
+
+
+    // printf("사운드 테스트 프로그램\n");
+    // printf("모드를 선택하세요:\n");
+    // printf("0: 음악 멈춤\n");
+    // printf("1: 도착 음악 재생\n");
+    // printf("2: 위험 음악 재생\n");
+    // printf("3: 이동 음악 재생\n");
+    // printf("Ctrl+C로 종료\n");
+
+    // // 사용자 입력 루프
+    // p
+
+    // // 사용자 입력 루프
+    // while (1) {
+    //     int newMode;
+    //     printf("모드 입력: ");
+    //     scanf("%d", &newMode);
+
+    //     if (newMode < 0 || newMode > 3) {
+    //         printf("잘못된 모드 입력. 0~3 사이 값을 입력하세요.\n");
+    //     } else {
+    //         pthread_mutex_lock(&modeMutex); // 뮤텍스 잠금
+    //         mode = newMode;
+    //         pthread_mutex_unlock(&modeMutex); // 뮤텍스 해제
+    //         printf("현재 모드: %d\n", mode);
+    //     }
+    // }
