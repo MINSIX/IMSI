@@ -57,6 +57,7 @@ int bluetoothInput(void)
     return return_; // 읽은 정수 값을 반환
 }
 
+//정수가 아닌경우의 처리를 위한 게이트
 int bluetoothGate(void){
     int input = 0;
     do{
