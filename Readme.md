@@ -125,3 +125,21 @@
 
 전기절연 테이프 흑색 1개
 
+# 2024-12-02 임베디드 시스템 보강 B,C
+## 하드웨어 제작 계획
+내부
+![image](https://github.com/user-attachments/assets/e9797638-ae5b-45a2-9b8e-b24b6b318a67)
+외부
+![image](https://github.com/user-attachments/assets/4c3e4a41-25f0-4ff5-ad29-7106827a0a0f)
+
+## 확인 사항
+DC 모터로 바퀴가 굴러가는지 확인, PWM이 아닌 softPWM을 이용하여 PWM포트를 사용하지 않음
+![KakaoTalk_20241202_193611514](https://github.com/user-attachments/assets/7ce4c97a-1146-40c6-a0f5-b76d557df04d)
+
+초음파 센서 사용법 숙지
+
+## 제작 시 주의 사항
+아크릴판 절단 과정에서 다치지 않도록 사포를 이용해 옆면 손질
+
+
+
