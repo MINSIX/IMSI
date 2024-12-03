@@ -141,5 +141,20 @@ DC 모터로 바퀴가 굴러가는지 확인, PWM이 아닌 softPWM을 이용�
 ## 제작 시 주의 사항
 아크릴판 절단 과정에서 다치지 않도록 사포를 이용해 옆면 손질
 
+# 2024-12-03 임베디드 시스템 수업
+## 아크릴 보드 절단
+![image](https://github.com/user-attachments/assets/882f7bfd-b56f-446d-9cbb-213bea1c03e6)
+
+### 변경 사항
+DC 모터 -> 스텝모터 변경
+
+변경 사유 : DC모터로 바퀴 중심 맞추기 힘듦(바퀴에 맞는 모터를 구매하지 않음), 스텝모터의 토크, GPIO
+
+### 진행 사항
+아크릴 판 절단
+
+스텝모터 연결 및 모터 확인
+![image](https://github.com/user-attachments/assets/f4962789-aeac-4695-9904-2d1d9991a7f1)
+
 
 
