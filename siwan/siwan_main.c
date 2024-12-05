@@ -19,21 +19,21 @@ void destroyStaticValue() {
 }
 
 // 최단 경로 탐색 테스트 main
-int main() {
-    initStaticValue();
+// int main() {
+//     initStaticValue();
 
-    FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
-    findPathTask->tableNum = 21;
-    enqueue(&findPathQueue, findPathTask);
+//     FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+//     findPathTask->tableNum = 21;
+//     enqueue(&findPathQueue, findPathTask);
 
-    pthread_t aStarThread;
-    pthread_create(&aStarThread, NULL, aStar, NULL);
+//     pthread_t aStarThread;
+//     pthread_create(&aStarThread, NULL, aStar, NULL);
     
-    pthread_join(aStarThread, NULL); 
+//     pthread_join(aStarThread, NULL); 
 
-    destroyStaticValue();
-    return 0;
-}
+//     destroyStaticValue();
+//     return 0;
+// }
 
 // 로봇 전진 테스트 main
 int main() {

@@ -86,7 +86,7 @@ void moveFront(int* pin_arr, int isLeft) {
     }
 }
 void moveBack() {
-    int delay_time = 5;
+    int delay_time = DEFAULT_DELAY_TIME;
     // for(int i = 4096; i > 0; i--) {
     //     for (int j = 0; j < 4; j++) {
     //         digitalWrite(pin_arr[j], one_phase[i % 8][j]);

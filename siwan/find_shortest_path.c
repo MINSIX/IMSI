@@ -235,7 +235,7 @@ void* aStar(void* arg) {
                         enqueueDirection(currentNode);
                         // TODO : 복귀까지 한 다음에 락을 풀어야할 것 같다.
                         pthread_mutex_unlock(&enqueueCommendMutex);
-                        return;
+                        return NULL;
                     }
                 }
             }
