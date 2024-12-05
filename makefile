@@ -3,10 +3,10 @@
 # 컴파일러와 플래그 정의
 CC = gcc
 CFLAGS = -Wall -Wextra -g -pthread
-LDFLAGS = -pthread -lm 
+LDFLAGS = -wiringPi -pthread -lm 
 
 # 소스 파일
-SRCS = main.c find_shortest_path.c move_robot.c task_queue.c
+SRCS = siwan_main.c find_shortest_path.c move_robot.c task_queue.c
 
 # 실행 파일 이름
 TARGET = find_shortest_path

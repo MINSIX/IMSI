@@ -19,9 +19,26 @@ typedef struct FindPathTask {
     int tableNum;
 } FindPathTask;
 
+typedef struct MoveDestinationTask {
+    int row;
+    int col;
+} MoveDestinationTask;
+
+typedef struct MarkerRecognitionTask {
+    int row;
+    int col;
+} MarkerRecognitionTask;
+
 extern TaskQueue findPathQueue;
-extern TaskQueue moveCommandQueue;
+extern TaskQueue moveDestinationQueue;
 extern pthread_mutex_t enqueueCommendMutex;
+
+extern TaskQueue markerRecognitionLogQueue;
+
+extern int leftFlag;
+extern int rightFlag;
+extern int markerFlag;
+extern int ultrasoundFlag;
 
 extern int nowRow;
 extern int nowCol;
@@ -30,7 +47,8 @@ extern double roll;
 extern double pitch;
 extern double yaw;
 
-extern void aStar();
+extern void* aStar(void* arg);
+extern void* startMoveWheelThread(void* arg);
 
 extern void startMove();
 
