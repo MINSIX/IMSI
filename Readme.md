@@ -156,5 +156,9 @@ DC 모터 -> 스텝모터 변경
 스텝모터 연결 및 모터 확인
 ![image](https://github.com/user-attachments/assets/f4962789-aeac-4695-9904-2d1d9991a7f1)
 
+# 2024-12-05 진행사항
+### 스텝모터를 이용한 이동
+![KakaoTalk_20241205_214932334](https://github.com/user-attachments/assets/f23e81ca-6c43-48ff-bd2e-1c0da4e7af4d)
 
-
+### 회로 수정
+pdf 파일로 업로드
