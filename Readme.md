@@ -162,3 +162,4 @@ DC 모터 -> 스텝모터 변경
 
 ### 회로 수정
 pdf 파일로 업로드
+[회로설계_1205.pdf](https://github.com/user-attachments/files/18024385/_1205.pdf)
