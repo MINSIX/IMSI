@@ -86,6 +86,7 @@ void tabelNumToCoordinate(int tableNum) {
                 goalRow = i;
                 goalCol = j;
                 isBreak = 1;
+                printf("goalRow : %d, goalCol : %d\n", i, j);
                 break;
             }
         }
@@ -104,24 +105,22 @@ typedef struct Node {
     int g; // 시작점부터 현재 노드까지 비용
     int h; // 휴리스틱 (현재 노드부터 목적지까지 비용)
     int f; // g + h
-    int direction; // 부모 노드에서 이동방향(상 : 1, 하 : 2, 좌 : 3, 우 : 4, 시작 : 0)
     struct Node* parent; // 부모 노드
 } Node;
 
-Node* createNode(int row, int col, int g, int h, int direction, Node* parent) {
+Node* createNode(int row, int col, int g, int h, Node* parent) {
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->row = row;
     newNode->col = col;
     newNode->g = g;
     newNode->h = h;
     newNode->f = g + h;
-    newNode->direction = direction;
     newNode->parent = parent;
     return newNode;
 }
 
 int isValid(int row, int col) {
-    return (row >= 0 && row < D231_ROW && col >= 0 && col < D231_COL && D231[row][col] != -1);
+    return (row >= 0 && row < D231_ROW && col >= 0 && col < D231_COL && D231[row][col] == 0);
 }
 
 int heuristic(int row, int col, int goalRow, int goalCol) {
@@ -139,10 +138,15 @@ void printPath(Node* node) {
 void enqueueDirection(Node* node) {
     if (node->parent == NULL) return;
     enqueueDirection(node->parent);
-    enqueue(&moveCommandQueue, &(node->direction));
+
+    MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
+    moveDestinationTask->row = node->row;
+    moveDestinationTask->col = node->col;
+    enqueue(&moveDestinationQueue, moveDestinationTask);
+    printf("%d %d\n", moveDestinationTask->row, moveDestinationTask->col);
 }
 
-void aStar() {
+void* aStar(void* arg) {
     printf("start astar\n");
     while (1) {
         if (isEmpty(&findPathQueue)) continue;
@@ -159,7 +163,7 @@ void aStar() {
         Node* visitedArr[D231_ROW * D231_COL];
         int visitedArrSize = 0;
 
-        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), 0, NULL);
+        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), NULL);
         shouldTravelArr[shouldTravelArrSize++] = startNode;
 
         while (shouldTravelArrSize > 0) {
@@ -172,19 +176,6 @@ void aStar() {
             }
 
             Node* currentNode = shouldTravelArr[minIndex];
-
-            // 목표에 도달했는지 확인
-            if (currentNode->row == goalRow && currentNode->col == goalCol) {
-                printf("destionation access\n");
-
-                pthread_mutex_lock(&enqueueCommendMutex);
-                
-                printf("start enqueue direction\n");
-                enqueueDirection(currentNode);
-                startMove();
-                pthread_mutex_unlock(&enqueueCommendMutex);
-                return;
-            }
 
             // 현재 노드를 openList에서 제거하고 closedList에 추가
             for (int i = minIndex; i < shouldTravelArrSize - 1; i++) {
@@ -214,7 +205,7 @@ void aStar() {
                     int gNew = currentNode->g + 1;
                     // 휴리스틱 계산
                     int hNew = heuristic(newRow, newCol, goalRow, goalCol);
-                    Node* newNode = createNode(newRow, newCol, gNew, hNew, i+1, currentNode);
+                    Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode);
 
                     // openList에 있는지 확인
                     // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
@@ -232,6 +223,19 @@ void aStar() {
                     }
                     if (!foundInOpen) {
                         shouldTravelArr[shouldTravelArrSize++] = newNode;
+                    }
+                } else {
+                    // 목표에 도달했는지 확인
+                    if (newRow == goalRow && newCol == goalCol) {
+                        printf("destionation access\n");
+
+                        pthread_mutex_lock(&enqueueCommendMutex);
+                        
+                        printf("start enqueue direction\n");
+                        enqueueDirection(currentNode);
+                        // TODO : 복귀까지 한 다음에 락을 풀어야할 것 같다.
+                        pthread_mutex_unlock(&enqueueCommendMutex);
+                        return NULL;
                     }
                 }
             }
