@@ -174,3 +174,10 @@ pdf 파일로 업로드
 
 ### 스텝모터를 이용한 회전(라인트레이싱, 교차로에서 사용)
 ![KakaoTalk_20241206_135850846](https://github.com/user-attachments/assets/28bfd99b-2af1-4da2-9334-2dc8c274b7f7)
+
+### 블루투스를 이용한 주문 큐의 인큐, 디큐
+![KakaoTalk_20241206_141920053 (1)](https://github.com/user-attachments/assets/b4e54c1a-e8fa-41f2-812b-fb53e5cdd444)
+
+### 라인트레이싱을 위한 실시간 빨간색 인식
+![KakaoTalk_20241206_142714005](https://github.com/user-attachments/assets/4d0cf735-15cf-457e-bf92-910fba64005f)
+
