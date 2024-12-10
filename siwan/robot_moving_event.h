@@ -13,6 +13,8 @@ typedef struct TaskQueue{
     int front;
     int rear;
     pthread_mutex_t mutex;
+    pthread_cond_t Full;
+    pthread_cond_t Empty;
 } TaskQueue;
 
 typedef struct FindPathTask {
@@ -32,6 +34,7 @@ typedef struct MarkerRecognitionTask {
 extern TaskQueue findPathQueue;
 extern TaskQueue moveDestinationQueue;
 extern pthread_mutex_t enqueueCommendMutex;
+
 
 extern TaskQueue markerRecognitionLogQueue;
 

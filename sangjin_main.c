@@ -15,20 +15,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "robot_moving_event.h"
+#include "./siwan/robot_moving_event.h"
 
 int soundmode = 0; // 음악 모드 (0: 멈춤, 1: 도착, 2: 위험, 3: 이동)
-
-
-
-// managerMusic을 스레드에서 실행
-#include <pthread.h>
 pthread_mutex_t modeMutex;
 
 void *musicThread(void *arg) {
     while (1) {
         pthread_mutex_lock(&modeMutex); // 뮤텍스 잠금
-        int currentMode = mode;
+        int currentMode = soundmode;
         pthread_mutex_unlock(&modeMutex); // 뮤텍스 해제
 
         managerMusic(currentMode);
@@ -39,12 +34,21 @@ void *musicThread(void *arg) {
 
 void *bluetoothThread(void *arg) {
     while (1) {
-        input = bluetoothGate()
+        int input = bluetoothGate();
+        printf("enqueue: %d \n", input);
         FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
         findPathTask->tableNum = input;
         enqueue(&findPathQueue, findPathTask);
     }
     return NULL;
+}
+
+void *findPathThread(void *arg){
+    while(1){
+        void* item =dequeue(&findPathQueue);
+        int temp = (int)item;
+
+    }
 }
 
 
@@ -54,9 +58,8 @@ int main(int argc, char **argv) {
 
     // Mutex 초기화
     thread_mutex_init(&modeMutex, NULL);
-    int num_threads = 2;  // 생성할 스레드 개수
+    int num_threads = 10;  // 생성할 스레드 개수
     pthread_t threads[num_threads];
-
 
 
     // 사운드 관리 스레드 시작
@@ -64,8 +67,16 @@ int main(int argc, char **argv) {
         perror("사운드 스레드 생성 실패");
         return -1;
     }
-    if (pthread_create(&&threads[1], NULL, bluetoothThread, NULL) != 0) {
+    if (pthread_create(&threads[1], NULL, bluetoothThread, NULL) != 0) {
         perror("블루투스 스레드 생성 실패");
+        return -1;
+    }
+    if (pthread_create(&threads[2], NULL, aStar, NULL) != 0) {
+        perror("Path 스레드 생성 실패");
+        return -1;
+    }
+    if (pthread_create(&threads[3], NULL, startMoveWheelThread, NULL) != 0) {
+        perror("Move 스레드 생성 실패");
         return -1;
     }
 
