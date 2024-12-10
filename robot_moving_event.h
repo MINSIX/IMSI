@@ -35,7 +35,6 @@ extern TaskQueue findPathQueue;
 extern TaskQueue moveDestinationQueue;
 extern pthread_mutex_t enqueueCommendMutex;
 
-
 extern TaskQueue markerRecognitionLogQueue;
 
 extern int leftFlag;

@@ -8,8 +8,8 @@ void arrivalMusicPlay(int inmode)
 
     for(i = 0 ; i < ARRIVAL_NOTES; i++)
     {
-        if(mode != inmode){
-            return
+        if(soundmode != inmode){
+            return;
         }
         softToneWrite (GPIO, arrivalNotes[i]); //
         delay (250); //
@@ -23,8 +23,8 @@ void dangerMusicPlay(int inmode)
 
     for(i = 0 ; i < DANGER_NOTES; i++)
     {
-        if(mode != inmode){
-            return
+        if(soundmode != inmode){
+            return;
         }
         softToneWrite (GPIO, dangerNotes[i]); //
         delay (dangerDurations[i]); //
@@ -38,8 +38,8 @@ void moveMusicPlay(int inmode){
     
     for(i = 0 ; i < MOVE_NOTES; i++)
     {
-        if(mode != inmode){
-            return
+        if(soundmode != inmode){
+            return;
         }
         softToneWrite (GPIO, moveNotes[i]); //
         delay (moveNoteDuration[i]); //
