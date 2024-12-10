@@ -195,8 +195,9 @@ https://github.com/user-attachments/assets/941deff0-1e6d-4dce-b40a-a9e696fa1953
 
 **위험 및 이동 간 음악 변경 예정**
 
-
-
+# 2024-12-10 임베디드 시스템 수업
+**고려 사항**
+배터리, opencv에서 얻은 값을 c로 넘기기, 케이스, 방향 전환, 복귀 버튼
 
 
 
