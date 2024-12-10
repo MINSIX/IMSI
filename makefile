@@ -6,7 +6,7 @@ CFLAGS = -Wall -Wextra -g -pthread
 LDFLAGS = -lwiringPi -lpthread -lm 
 
 # 소스 파일
-SRCS = siwan_main.c find_shortest_path.c move_robot.c task_queue.c
+SRCS = sangjin_main.c find_shortest_path.c move_robot.c task_queue.c sound.c bluetooth.c
 
 # 실행 파일 이름
 TARGET = test

@@ -149,9 +149,10 @@ void enqueueDirection(Node* node) {
 void* aStar(void* arg) {
     printf("start astar\n");
     while (1) {
-        if (isEmpty(&findPathQueue)) continue;
+        // if (isEmpty(&findPathQueue)) continue;
 
         FindPathTask* findPathTask = dequeue(&findPathQueue);
+        printf("dequeue: %d", findPathTask->tableNum);
         int startRow = nowRow;
         int startCol = nowCol;
         int tableNum = findPathTask->tableNum;
@@ -233,7 +234,11 @@ void* aStar(void* arg) {
                         
                         printf("start enqueue direction\n");
                         enqueueDirection(currentNode);
-                        // TODO : 복귀까지 한 다음에 락을 풀어야할 것 같다.
+                        // TODO : 복귀까지 한 다음에 다른 작업이 큐에 들어갈 수 있도록 해야할 것 같음
+                        // 여러 스레드가 대기하는 경우, 먼저 호출된 스레드가 먼저 영역에 들어갈 수 있도록 할 수 있을까?
+
+                        // TODO : 작업이 이상하게 처리되어 다른 경로를 다시 찾아야하는 경우는 어떻게 해야할까
+                        // 다른 경로를 찾아야하는 스레드가 임계영역에 들어갈 최우선순위를 가지게 할 수 있을까?
                         pthread_mutex_unlock(&enqueueCommendMutex);
                         return NULL;
                     }

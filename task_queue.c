@@ -42,11 +42,12 @@ void enqueue(TaskQueue* q, void* value) {
 // 큐에서 요소 제거
 void* dequeue(TaskQueue* q) {
     pthread_mutex_lock(&q->mutex); // mutex lock
-
+    printf("hi 1");
     while (isEmpty(q)) {
         printf("큐가 비어있습니다!\n");
         pthread_cond_wait(&q->Full,&q->mutex); // mutex lock 
     }
+    printf("hi 2");
     void* item = q->task[q->front];
     q->front++;
     if (q->front > q->rear) { // 큐가 비어있게 되면 초기화

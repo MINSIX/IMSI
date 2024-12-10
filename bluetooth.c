@@ -31,7 +31,7 @@ int bluetoothInput(void)
         return -1;
     }
 
-    if ((fd_serial = serialOpen(UART2_DEV, BAUD_RATE)) < 0) {
+    if ((fd_serial = serialOpen(UART1_DEV, BAUD_RATE)) < 0) {
         printf("Unable to open serial device.\n");
         return -1;
     }

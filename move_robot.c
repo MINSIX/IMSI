@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <wiringPi.h>
+#include <time.h> 
 #include "robot_moving_event.h"
 
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -13,11 +14,12 @@ int waitThreadCount = 0;
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
 #define DEFAULT_DELAY_TIME 1
+#define THRESHOLD_SEC 2
 
 // 스텝 모터 핀 배열
 // A(상) B(우) A'(하) B'(좌)
 // 1, 2상 제어 : 4096 스텝
-int right_arr[RIGHT_PIN_COUNT] = {21, 12, 16, 20};  // 오른쪽 모터 핀
+int right_arr[RIGHT_PIN_COUNT] = {20, 5, 12, 16};  // 오른쪽 모터 핀
 int left_arr[LEFT_PIN_COUNT] = {26, 19, 13, 6};      // 왼쪽 모터 핀
 
 // 스텝 패턴
@@ -39,10 +41,91 @@ void init_Step(int* pin_arr) {
     }
 }
 
-void moveFront(int* pin_arr, int isLeft) {
-    int delay_time = DEFAULT_DELAY_TIME;
+void moveFront(int* pin_arr, int isLeft, int delayTime) {
+    int delay_time = delayTime;
+    int leftFlagDuration = 0;
+    int rightFlagDuration = 0;
+    time_t leftFlagStartTime = 0;
+    time_t rightFlagStartTime = 0;
     while(1) {
         for(int i = 0; i < 4096; i++) {
+            // if(ultrasoundFlag) {
+            // TODO : ultrasoundFlag가 true가 될 때까지 대기
+            // }
+
+            if(stopFlag) {
+                return;
+            }
+
+            if (leftFlag) {
+                // 플래그가 활성화된 시간 기록
+                if (leftFlagStartTime == 0) {
+                    leftFlagStartTime = time(NULL); 
+                }
+                leftFlagDuration = time(NULL) - leftFlagStartTime;
+            } else {
+                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+                leftFlagDuration = 0; 
+                leftFlagStartTime = 0;
+            }
+
+            if (rightFlag) {
+                // 플래그가 활성화된 시간 기록
+                if (rightFlagStartTime == 0) {
+                    rightFlagStartTime = time(NULL); 
+                }
+                // 현재 유지 시간 계산
+                rightFlagDuration = time(NULL) - rightFlagStartTime; 
+            } else {
+                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+                rightFlagDuration = 0; 
+                rightFlagStartTime = 0;
+            }
+
+
+            if(isLeft) {
+                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
+                    rightFlagStartTime = time(NULL); 
+                    delay_time++;
+                }
+                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                    leftFlagStartTime = time(NULL); 
+                    delay_time--;
+                    if (delay_time <= 0) {
+                        delay_time = 1;
+                    }
+                }
+            } else {
+                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
+                    rightFlagStartTime = time(NULL); 
+                    delay_time--;
+                    if (delay_time <= 0) {
+                        delay_time = 1;
+                    }
+                }
+                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                    leftFlagStartTime = time(NULL); 
+                    delay_time++;
+                }
+            }
+
+            // 플래그가 모두 0일 때 기본 지연 시간으로 설정
+            if (!leftFlag && !rightFlag) {
+                delay_time = DEFAULT_DELAY_TIME; 
+            }
+
+            for (int j = 0; j < 4; j++) {
+                digitalWrite(pin_arr[j], one_phase[i % 8][j]);
+            }
+            delay(delay_time);
+            // delayMicroseconds(delay_time * 900); // Delay 조정
+        }
+    }
+}
+void moveBack(int* pin_arr, int isLeft, int delayTime) {
+    int delay_time = delayTime;
+    while(1) {
+        for(int i = 4096; i > 0; i--) {
             // if(ultrasoundFlag) {
             //     // TODO : ultrasoundFlag가 true가 될 때까지 대기
             // }
@@ -85,15 +168,6 @@ void moveFront(int* pin_arr, int isLeft) {
         }
     }
 }
-void moveBack() {
-    int delay_time = DEFAULT_DELAY_TIME;
-    // for(int i = 4096; i > 0; i--) {
-    //     for (int j = 0; j < 4; j++) {
-    //         digitalWrite(pin_arr[j], one_phase[i % 8][j]);
-    //     }
-    //     delay(delay_time);
-    // }
-}
 
 void* leftWheelThread(void* arg) {
     while (1) {
@@ -104,7 +178,7 @@ void* leftWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(left_arr, 1);
+        moveFront(left_arr, 1, 5);
     }
     return NULL;
 }
@@ -118,7 +192,8 @@ void* rightWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(right_arr, 0);
+        moveFront(right_arr, 0, 2);
+        // moveBack(right_arr, 0, 5);
     }
 }
 
@@ -140,6 +215,7 @@ void* startMoveWheelThread(void* arg) {
             continue;
         }
         
+        delay(10);
         printf("dequeue direction\n");
         MoveDestinationTask* task = dequeue(&moveDestinationQueue);
         commandReady = 1; // 명령 준비 완료
@@ -152,26 +228,28 @@ void* startMoveWheelThread(void* arg) {
         }
         
         // 실험을 위한 코드(15초 동안 진행)
-        delay(15000);
-        commandReady = 0;
-        stopFlag = 1;
+        // delay(15000);
+        // commandReady = 0;
+        // stopFlag = 1;
 
-        // TODO : 마커인식쪽에서 마커를 인식하면 인식된 마커 번호를 전달하게 하여, 목표 위치와 일치하는지 확인 및 동작 중지
-        // int goalRow = task->row;
-        // int goalCol = task->col;
-        // while(1) {
-        //     if (isEmpty(&markerRecognitionLogQueue)) {
-        //         continue;
-        //     }
-        //     MarkerRecognitionTask* marker = dequeue(&markerRecognitionLogQueue);
-        //     if (goalRow == marker->row && goalCol == marker->col) {
-        //         commandReady = 0;
-        //         stopFlag = 1;
-        //         break;
-        //     } else {
-        //         printf("잘못된 위치입니다!\n");
-        //     }
-        // }
+        // 마커인식쪽에서 마커를 인식하면 인식된 마커 번호를 전달하게 하여, 목표 위치와 일치하는지 확인 및 동작 중지
+        int goalRow = task->row;
+        int goalCol = task->col;
+        while(1) {
+            if (isEmpty(&markerRecognitionLogQueue)) {
+                continue;
+            }
+            MarkerRecognitionTask* marker = dequeue(&markerRecognitionLogQueue);
+            if (goalRow == marker->row && goalCol == marker->col) {
+                commandReady = 0;
+                stopFlag = 1;
+                break;
+            } else {
+                printf("잘못된 위치입니다!\n");
+                return;
+                // TODO : 잘못된 위치라면 큐에 있는 경로 모두 삭제 후 다시 경로 계산?
+            }
+        }
 
         // TODO : 사용자의 이동을 스택에 기록해놓고, 되돌아갈 때 사용해야함
         // TODO : 버튼 클릭을 기다리고, 클릭되면 되돌아가기 함수 넣어야함
