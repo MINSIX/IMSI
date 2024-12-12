@@ -10,6 +10,7 @@
 
 // Sound.h 확인용
 #include "sound.h"
+#include "micro.h"
 #include "bluetooth.h"
 #include <pthread.h>
 #include <stdio.h>
