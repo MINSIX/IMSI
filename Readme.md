@@ -185,12 +185,15 @@ pdf 파일로 업로드
 # 2024-12-09 추가사항
 ### 사운드 테스트
 이동 시 
+
 https://github.com/user-attachments/assets/1fc5275b-68b2-41b7-ad4b-30825ab7aa66
 
 위험 시
+
 https://github.com/user-attachments/assets/be3d0d74-f5c5-4c17-9557-6a9718dfbf99
 
 도착 시
+
 https://github.com/user-attachments/assets/941deff0-1e6d-4dce-b40a-a9e696fa1953
 
 **위험 및 이동 간 음악 변경 예정**
