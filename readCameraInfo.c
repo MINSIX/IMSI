@@ -51,11 +51,14 @@ void* watch_and_read_file(){
                     printf("mark : %s\n",Smark);
                     printf("flag : %s\n",flag);
 
-                    if (strcmp(flag,"left")){
+                    if ( strcmp(flag,"None") == 0){
+                        continue;
+                    }
+                    else if (strcmp(flag,"left") == 0){
                         leftFlag = 1;
                         rightFlag = 0;
                     }
-                    else if (strcmp(flag,"right")){
+                    else if (strcmp(flag,"right") == 0){
                         leftFlag = 0;
                         rightFlag = 1; 
                     }
@@ -63,6 +66,7 @@ void* watch_and_read_file(){
                         leftFlag = 0;
                         rightFlag = 1;
                     }
+                    printf("le : %d ri: %d",leftFlag,rightFlag);
 
                 }
                 fclose(file);
