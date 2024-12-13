@@ -13,7 +13,7 @@ int waitThreadCount = 0;
 
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
-#define DEFAULT_DELAY_TIME 1
+#define DEFAULT_DELAY_TIME 3
 #define THRESHOLD_SEC 2
 
 // 스텝 모터 핀 배열
@@ -41,89 +41,93 @@ void init_Step(int* pin_arr) {
     }
 }
 
-void moveFront(int* pin_arr, int isLeft, int delayTime) {
-    int delay_time = delayTime;
+void moveFront(int* pin_arr, int isLeft) {
+    int delay_time = DEFAULT_DELAY_TIME;
     int leftFlagDuration = 0;
     int rightFlagDuration = 0;
     time_t leftFlagStartTime = 0;
     time_t rightFlagStartTime = 0;
     while(1) {
-        for(int i = 0; i < 4096; i++) {
-            // if(ultrasoundFlag) {
-            // TODO : ultrasoundFlag가 true가 될 때까지 대기
-            // }
+        // if(ultrasoundFlag) {
+        // TODO : ultrasoundFlag가 true가 될 때까지 대기
+        // }
 
-            if(stopFlag) {
-                return;
-            }
-
-            if (leftFlag) {
-                // 플래그가 활성화된 시간 기록
-                if (leftFlagStartTime == 0) {
-                    leftFlagStartTime = time(NULL); 
-                }
-                leftFlagDuration = time(NULL) - leftFlagStartTime;
-            } else {
-                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
-                leftFlagDuration = 0; 
-                leftFlagStartTime = 0;
-            }
-
-            if (rightFlag) {
-                // 플래그가 활성화된 시간 기록
-                if (rightFlagStartTime == 0) {
-                    rightFlagStartTime = time(NULL); 
-                }
-                // 현재 유지 시간 계산
-                rightFlagDuration = time(NULL) - rightFlagStartTime; 
-            } else {
-                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
-                rightFlagDuration = 0; 
-                rightFlagStartTime = 0;
-            }
-
-
-            if(isLeft) {
-                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
-                    rightFlagStartTime = time(NULL); 
-                    delay_time++;
-                }
-                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
-                    leftFlagStartTime = time(NULL); 
-                    delay_time--;
-                    if (delay_time <= 0) {
-                        delay_time = 1;
-                    }
-                }
-            } else {
-                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
-                    rightFlagStartTime = time(NULL); 
-                    delay_time--;
-                    if (delay_time <= 0) {
-                        delay_time = 1;
-                    }
-                }
-                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
-                    leftFlagStartTime = time(NULL); 
-                    delay_time++;
-                }
-            }
-
-            // 플래그가 모두 0일 때 기본 지연 시간으로 설정
-            if (!leftFlag && !rightFlag) {
-                delay_time = DEFAULT_DELAY_TIME; 
-            }
-
-            for (int j = 0; j < 4; j++) {
-                digitalWrite(pin_arr[j], one_phase[i % 8][j]);
-            }
-            delay(delay_time);
-            // delayMicroseconds(delay_time * 900); // Delay 조정
+        if(stopFlag) {
+            printf("stop!\n");
+            return;
         }
+
+        if (leftFlag) {
+            // 플래그가 활성화된 시간 기록
+            if (leftFlagStartTime == 0) {
+                leftFlagStartTime = time(NULL); 
+                // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                leftFlagDuration = THRESHOLD_SEC+1;
+            } else{
+                leftFlagDuration = time(NULL) - leftFlagStartTime;
+            }
+        } else {
+            // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+            leftFlagDuration = 0; 
+            leftFlagStartTime = 0;
+        }
+
+        if (rightFlag) {
+            // 플래그가 활성화된 시간 기록
+            if (rightFlagStartTime == 0) {
+                rightFlagStartTime = time(NULL);
+                // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                rightFlagDuration = THRESHOLD_SEC+1;
+            } else {
+                rightFlagDuration = time(NULL) - rightFlagStartTime; 
+            }
+            
+        } else {
+            // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+            rightFlagDuration = 0; 
+            rightFlagStartTime = 0;
+        }
+
+
+        if(isLeft) {
+            if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
+                rightFlagStartTime = time(NULL); 
+                delay_time--;
+                if (delay_time <= 0) {
+                    delay_time = 1;
+                }
+            }
+            if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                leftFlagStartTime = time(NULL); 
+                delay_time++;
+            }
+        } else {
+            if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
+                rightFlagStartTime = time(NULL); 
+                delay_time++;
+            }
+            if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                leftFlagStartTime = time(NULL); 
+                delay_time--;
+                if (delay_time <= 0) {
+                    delay_time = 1;
+                }
+            }
+        }
+
+        // 플래그가 모두 0일 때 기본 지연 시간으로 설정
+        if (!leftFlag && !rightFlag) {
+            delay_time = DEFAULT_DELAY_TIME; 
+        }
+
+        for (int j = 0; j < 4; j++) {
+            digitalWrite(pin_arr[j], one_phase[i % 8][j]);
+        }
+        delay(delay_time);
     }
 }
-void moveBack(int* pin_arr, int isLeft, int delayTime) {
-    int delay_time = delayTime;
+void moveBack(int* pin_arr, int isLeft) {
+    int delay_time = DEFAULT_DELAY_TIME;
     while(1) {
         for(int i = 4096; i > 0; i--) {
             // if(ultrasoundFlag) {
@@ -164,7 +168,6 @@ void moveBack(int* pin_arr, int isLeft, int delayTime) {
                 digitalWrite(pin_arr[j], one_phase[i % 8][j]);
             }
             delay(delay_time);
-            // delayMicroseconds(delay_time * 900); // Delay 조정
         }
     }
 }
@@ -178,7 +181,7 @@ void* leftWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(left_arr, 1, 5);
+        moveFront(left_arr, 1);
     }
     return NULL;
 }
@@ -192,8 +195,8 @@ void* rightWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(right_arr, 0, 2);
-        // moveBack(right_arr, 0, 5);
+        moveFront(right_arr, 0);
+        // moveBack(right_arr, 0);
     }
 }
 
@@ -251,7 +254,6 @@ void* startMoveWheelThread(void* arg) {
             }
         }
 
-        // TODO : 사용자의 이동을 스택에 기록해놓고, 되돌아갈 때 사용해야함
         // TODO : 버튼 클릭을 기다리고, 클릭되면 되돌아가기 함수 넣어야함
 
         // 1. 큐에 작업이 있으면 dequeue 후 작업에 있는 목표 row, col까지 라인트레이싱하면서 진행
