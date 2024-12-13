@@ -48,82 +48,84 @@ void moveFront(int* pin_arr, int isLeft) {
     time_t leftFlagStartTime = 0;
     time_t rightFlagStartTime = 0;
     while(1) {
-        // if(ultrasoundFlag) {
-        // TODO : ultrasoundFlag가 true가 될 때까지 대기
-        // }
+        for(int i = 0; i < 256; i++) {
+            // if(ultrasoundFlag) {
+            // TODO : ultrasoundFlag가 true가 될 때까지 대기
+            // }
 
-        if(stopFlag) {
-            printf("stop!\n");
-            return;
-        }
-
-        if (leftFlag) {
-            // 플래그가 활성화된 시간 기록
-            if (leftFlagStartTime == 0) {
-                leftFlagStartTime = time(NULL); 
-                // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
-                leftFlagDuration = THRESHOLD_SEC+1;
-            } else{
-                leftFlagDuration = time(NULL) - leftFlagStartTime;
+            if(stopFlag) {
+                printf("stop!\n");
+                return;
             }
-        } else {
-            // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
-            leftFlagDuration = 0; 
-            leftFlagStartTime = 0;
-        }
 
-        if (rightFlag) {
-            // 플래그가 활성화된 시간 기록
-            if (rightFlagStartTime == 0) {
-                rightFlagStartTime = time(NULL);
-                // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
-                rightFlagDuration = THRESHOLD_SEC+1;
+            if (leftFlag) {
+                // 플래그가 활성화된 시간 기록
+                if (leftFlagStartTime == 0) {
+                    leftFlagStartTime = time(NULL); 
+                    // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                    leftFlagDuration = THRESHOLD_SEC+1;
+                } else{
+                    leftFlagDuration = time(NULL) - leftFlagStartTime;
+                }
             } else {
-                rightFlagDuration = time(NULL) - rightFlagStartTime; 
+                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+                leftFlagDuration = 0; 
+                leftFlagStartTime = 0;
             }
-            
-        } else {
-            // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
-            rightFlagDuration = 0; 
-            rightFlagStartTime = 0;
-        }
+
+            if (rightFlag) {
+                // 플래그가 활성화된 시간 기록
+                if (rightFlagStartTime == 0) {
+                    rightFlagStartTime = time(NULL);
+                    // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                    rightFlagDuration = THRESHOLD_SEC+1;
+                } else {
+                    rightFlagDuration = time(NULL) - rightFlagStartTime; 
+                }
+                
+            } else {
+                // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
+                rightFlagDuration = 0; 
+                rightFlagStartTime = 0;
+            }
 
 
-        if(isLeft) {
-            if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
-                rightFlagStartTime = time(NULL); 
-                delay_time--;
-                if (delay_time <= 0) {
-                    delay_time = 1;
+            if(isLeft) {
+                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
+                    rightFlagStartTime = time(NULL); 
+                    delay_time--;
+                    if (delay_time <= 0) {
+                        delay_time = 1;
+                    }
+                }
+                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                    leftFlagStartTime = time(NULL); 
+                    delay_time++;
+                }
+            } else {
+                if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
+                    rightFlagStartTime = time(NULL); 
+                    delay_time++;
+                }
+                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                    leftFlagStartTime = time(NULL); 
+                    delay_time--;
+                    if (delay_time <= 0) {
+                        delay_time = 1;
+                    }
                 }
             }
-            if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
-                leftFlagStartTime = time(NULL); 
-                delay_time++;
-            }
-        } else {
-            if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
-                rightFlagStartTime = time(NULL); 
-                delay_time++;
-            }
-            if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
-                leftFlagStartTime = time(NULL); 
-                delay_time--;
-                if (delay_time <= 0) {
-                    delay_time = 1;
-                }
-            }
-        }
 
-        // 플래그가 모두 0일 때 기본 지연 시간으로 설정
-        if (!leftFlag && !rightFlag) {
-            delay_time = DEFAULT_DELAY_TIME; 
-        }
+            // 플래그가 모두 0일 때 기본 지연 시간으로 설정
+            if (!leftFlag && !rightFlag) {
+                delay_time = DEFAULT_DELAY_TIME; 
+            }
 
-        for (int j = 0; j < 4; j++) {
-            digitalWrite(pin_arr[j], one_phase[i % 8][j]);
+            for (int j = 0; j < 4; j++) {
+                digitalWrite(pin_arr[j], one_phase[i % 8][j]);
+            }
+            delay(delay_time);
         }
-        delay(delay_time);
     }
 }
 void moveBack(int* pin_arr, int isLeft) {
