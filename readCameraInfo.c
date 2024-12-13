@@ -20,6 +20,8 @@ void splitString(const char *str, char *numbers,char *nonNumbers){
 
 void* watch_and_read_file(){
     int fd,wd;
+    FILE *file;
+    //static long lastPosition = 0;
     char buffer[EVENT_BUF_LEN];
 
     char Smark[10];
@@ -43,32 +45,36 @@ void* watch_and_read_file(){
             struct inotify_event *event = (struct inotify_event*)&buffer[i];
             if (event->mask & IN_MODIFY){
                 
-                FILE *file  = fopen("test.txt","r");
-             
+                file  = fopen("test.txt","r");
+
+                //fseek(file,lastPosition,SEEK_SET);
+
                 char line[256];
                 while (fgets(line,sizeof(line),file)){
                     splitString(line,Smark,flag);
                     printf("mark : %s\n",Smark);
                     printf("flag : %s\n",flag);
 
-                    if ( strcmp(flag,"None") == 0){
+                    printf("aa : %d\n",strcmp(flag,"left\0"));
+                    if ( strcmp(flag,"None") == 32){
                         continue;
                     }
-                    else if (strcmp(flag,"left") == 0){
+                    else if (strcmp(flag,"left") == 32){
                         leftFlag = 1;
                         rightFlag = 0;
                     }
-                    else if (strcmp(flag,"right") == 0){
+                    else if (strcmp(flag,"right") == 32){
                         leftFlag = 0;
                         rightFlag = 1; 
                     }
                     else{
                         leftFlag = 0;
-                        rightFlag = 1;
+                        rightFlag = 0;
                     }
                     printf("le : %d ri: %d",leftFlag,rightFlag);
 
                 }
+                //lastPosition = ftell(file);
                 fclose(file);
             }
             i += EVENT_SIZE + event->len;

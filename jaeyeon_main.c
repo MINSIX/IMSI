@@ -5,6 +5,8 @@
 
 TaskQueue findPathQueue;
 TaskQueue moveDestinationQueue;
+TaskQueue markerRecognitionLogQueue;
+
 pthread_mutex_t enqueueCommendMutex;
 
 void initStaticValue () {

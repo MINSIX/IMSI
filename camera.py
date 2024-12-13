@@ -79,8 +79,8 @@ with open(filename,'w') as f:
 
                 state = "left" if d[0] > 0 else "right"
                 
-                if 0.3 > d[0]  and d[0]>-0.3:
-                    state = " go"
+                # if 0.3 > d[0]  and d[0]>-0.3:
+                #     state = " go"
 
                 if M['m00'] > 0:
                     cx = int(M['m10']/M['m00'])
