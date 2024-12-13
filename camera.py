@@ -44,14 +44,15 @@ with open(filename,'w') as f:
 
         # cv2.imshow("test",markerImage)
         
-        img_gray=cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        img_hsv=cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 
-        # lower_red = np.array([0,50,20]) 
-        # upper_red = np.array([40,255,255])
-        # mask = cv2.inRange(img_hsv, lower_red, upper_red)
+        lower_red = np.array([0,50,50]) 
+        upper_red = np.array([40,255,255])
+        mask = cv2.inRange(img_hsv, lower_red, upper_red)
 
-        th_value = 100
-        _, mask = cv2.threshold(img_gray,th_value,255,cv2.THRESH_BINARY)
+        # img_gray=cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        # th_value = 100
+        # _, mask = cv2.threshold(img_gray,th_value,255,cv2.THRESH_BINARY)
         
 
         red_pixels = cv2.countNonZero(mask)
@@ -59,13 +60,12 @@ with open(filename,'w') as f:
         red_percentage = (red_pixels / total_pixels) * 100
 
         # Default state
-        state = "go"
+        state = "None"
 
         # Check if red is dominant
-        if red_percentage >= 95:
-            state = "go"
+
             
-        else:
+        if True:
             contours, _ = cv2.findContours(mask,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
             
             if contours:
