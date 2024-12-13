@@ -205,5 +205,17 @@ https://github.com/user-attachments/assets/941deff0-1e6d-4dce-b40a-a9e696fa1953
 
 배터리, opencv에서 얻은 값을 c로 넘기기, 케이스, 방향 전환, 복귀 버튼
 
+# 2024-12-13 평일 수정
+- 라인트레이싱 구현
+
+- 배터리 탑재 후 가동 확인
+
+https://github.com/user-attachments/assets/dfc0f9e8-e741-45c7-8f93-60a83b5e0961
+
+
+
+
+
+
 
 
