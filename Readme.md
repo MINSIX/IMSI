@@ -210,7 +210,9 @@ https://github.com/user-attachments/assets/941deff0-1e6d-4dce-b40a-a9e696fa1953
 
 - 배터리 탑재 후 가동 확인
 
-https://github.com/user-attachments/assets/dfc0f9e8-e741-45c7-8f93-60a83b5e0961
+https://github.com/user-attachments/assets/f991286a-3d07-49c1-8313-5c6d1b322982
+
+
 
 
 
