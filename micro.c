@@ -38,10 +38,12 @@ void* distancecheck(void* arg)
         if(distance < 10) {
           soundmode = 2;
           turnOn = 1;
+          stopFlag = 1;
         }
         else if(turnOn && distance >= 10){
           soundmode = 3;
           turnOn = 0;
+          stopFlag = 0;
         }
     }
 }
