@@ -106,9 +106,10 @@ typedef struct Node {
     int h; // 휴리스틱 (현재 노드부터 목적지까지 비용)
     int f; // g + h
     struct Node* parent; // 부모 노드
+    int direction; // 도달 방향(1: 상, 2: 하, 3: 좌, 4: 우, 0: 출발 위치)
 } Node;
 
-Node* createNode(int row, int col, int g, int h, Node* parent) {
+Node* createNode(int row, int col, int g, int h, Node* parent, int direction) {
     Node* newNode = (Node*)malloc(sizeof(Node));
     newNode->row = row;
     newNode->col = col;
@@ -116,6 +117,7 @@ Node* createNode(int row, int col, int g, int h, Node* parent) {
     newNode->h = h;
     newNode->f = g + h;
     newNode->parent = parent;
+    newNode->direction = direction;
     return newNode;
 }
 
@@ -142,6 +144,7 @@ void enqueueDirection(Node* node) {
     MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
     moveDestinationTask->row = node->row;
     moveDestinationTask->col = node->col;
+    moveDestinationTask->direction = node->direction;
     enqueue(&moveDestinationQueue, moveDestinationTask);
     printf("%d %d\n", moveDestinationTask->row, moveDestinationTask->col);
 }
@@ -164,9 +167,10 @@ void* aStar(void* arg) {
         Node* visitedArr[D231_ROW * D231_COL];
         int visitedArrSize = 0;
 
-        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), NULL);
+        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), NULL, 0);
         shouldTravelArr[shouldTravelArrSize++] = startNode;
-
+        
+        int isStart = 1;
         while (shouldTravelArrSize > 0) {
             // 가장 낮은 f 값을 가진 노드 찾기
             int minIndex = 0;
@@ -188,6 +192,12 @@ void* aStar(void* arg) {
             // 이웃 노드 탐색
             int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}}; // 상하좌우
             for (int i = 0; i < 4; i++) {
+                if (isStart) {
+                    if (nowRobotDir+1 == i+1 || nowRobotDir-1 == i+1) {
+                        isStart = 0;
+                        continue;
+                    }
+                }
                 int newRow = currentNode->row + directions[i][0];
                 int newCol = currentNode->col + directions[i][1];
 
@@ -206,7 +216,7 @@ void* aStar(void* arg) {
                     int gNew = currentNode->g + 1;
                     // 휴리스틱 계산
                     int hNew = heuristic(newRow, newCol, goalRow, goalCol);
-                    Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode);
+                    Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode, i+1);
 
                     // openList에 있는지 확인
                     // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
@@ -234,11 +244,6 @@ void* aStar(void* arg) {
                         
                         printf("start enqueue direction\n");
                         enqueueDirection(currentNode);
-                        // TODO : 복귀까지 한 다음에 다른 작업이 큐에 들어갈 수 있도록 해야할 것 같음
-                        // 여러 스레드가 대기하는 경우, 먼저 호출된 스레드가 먼저 영역에 들어갈 수 있도록 할 수 있을까?
-
-                        // TODO : 작업이 이상하게 처리되어 다른 경로를 다시 찾아야하는 경우는 어떻게 해야할까
-                        // 다른 경로를 찾아야하는 스레드가 임계영역에 들어갈 최우선순위를 가지게 할 수 있을까?
                         pthread_mutex_unlock(&enqueueCommendMutex);
                         return NULL;
                     }
@@ -250,5 +255,13 @@ void* aStar(void* arg) {
     }
     
 }
+
+// aStar를 호출하는 코드를 만들고, aStar 호출 영역을 임계영역으로 지정한다.
+// 첫번째 동작인 테이블로 이동을 위한 aStar 호출 후 버튼 눌림이 올 때 까지 cond_wait
+// 목표위치가 아닌 다른 마커에 도달하면 move_robot.c 내에서 큐 모두 삭제 및 aStar를 호출하여 새 경로 큐에 삽입을 한다.
+// 버튼이 눌리면 스레드를 꺠우고, 복귀를 위한 aStar 호출 후 복귀 성공할 때 까지 cond_wait
+// 복귀 성공 후에 스레드를 꺠우고 임계영역을 빠져나간다.
+
+// 전역변수 : pushButtonFlag, cond 변수, 작업이 복귀임을 나타내는 플래그 값
 
 

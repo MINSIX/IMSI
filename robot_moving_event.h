@@ -7,6 +7,7 @@
 
 #define DEFAULT_START_ROW 4
 #define DEFAULT_START_COL 6
+#define DEFAULT_ROBOT_DIR 1
 
 typedef struct TaskQueue{
     void* task[MAX_TASK_SIZE];
@@ -24,6 +25,7 @@ typedef struct FindPathTask {
 typedef struct MoveDestinationTask {
     int row;
     int col;
+    int direction;
 } MoveDestinationTask;
 
 typedef struct MarkerRecognitionTask {
@@ -45,9 +47,9 @@ extern int ultrasoundFlag;
 extern int nowRow;
 extern int nowCol;
 
-extern double roll;
-extern double pitch;
-extern double yaw;
+extern int nowRobotRow;
+extern int nowRobotCol;
+extern int nowRobotDir;
 
 extern void* aStar(void* arg);
 extern void* startMoveWheelThread(void* arg);
