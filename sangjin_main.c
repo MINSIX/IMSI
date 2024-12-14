@@ -9,19 +9,19 @@
 
 
 // Sound.h 확인용
-#include "sound.h"
 #include "micro.h"
+#include "sound.h"
 #include "bluetooth.h"
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "robot_moving_event.h"
-#include "micro.h"
 #include "readCameraInfo.h"
 
 TaskQueue findPathQueue;
 TaskQueue moveDestinationQueue;
+TaskQueue markerRecognitionLogQueue;
 pthread_mutex_t enqueueCommendMutex;
 
 int soundmode = 1; // 음악 모드 (0: 멈춤, 1: 도착, 2: 위험, 3: 이동)
@@ -30,7 +30,15 @@ pthread_mutex_t modeMutex;
 void initStaticValue () {
     initQueue(&findPathQueue);
     initQueue(&moveDestinationQueue);
+    initQueue(&markerRecognitionLogQueue);
     pthread_mutex_init(&enqueueCommendMutex, NULL);
+}
+
+void destroyStaticValue() {
+    pthread_mutex_destroy(&findPathQueue.mutex);
+    pthread_mutex_destroy(&moveDestinationQueue.mutex);
+    pthread_mutex_destroy(&markerRecognitionLogQueue.mutex);
+    pthread_mutex_destroy(&enqueueCommendMutex);
 }
 
 void *musicThread(void *arg) {
@@ -60,6 +68,7 @@ void *bluetoothThread(void *arg) {
 
 int main(int argc, char **argv) {
     // GPIO 초기화
+    soundmode = 3;
     wiringPiSetupGpio();
     initStaticValue();
     // Mutex 초기화
@@ -87,14 +96,17 @@ int main(int argc, char **argv) {
     //     perror("Move 스레드 생성 실패");
     //     return -1;
     // }
-    if (pthread_create(&threads[4], NULL, distancecheck, NULL) != 0) {
+    if (pthread_create(&threads[3], NULL, distancecheck, NULL) != 0) {
         perror("초음파 스레드 생성 실패");
         return -1;
     }
-    if (pthread_create(&thread[5],NULL, watch_and_read_file,NULL) != 0) {
-        perror("카메라 스레드 생성 실패");
-        return -1;
+    else{
+        printf("success \n");
     }
+    // if (pthread_create(&thread[5],NULL, watch_and_read_file,NULL) != 0) {
+    //     perror("카메라 스레드 생성 실패");
+    //     return -1;
+    // }
 
     for(int i = 0; i < num_threads; i++){
       if (pthread_join(threads[i], NULL) != 0) {

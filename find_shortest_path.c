@@ -75,18 +75,18 @@ int D231[D231_ROW][D231_COL] = {
     {-1, -1, -1, 0, -1},
 };
 
-int goalRow = 0;
-int goalCol = 0;
+int finalGoalRow = 0;
+int finalGoalCol = 0;
 
 void tabelNumToCoordinate(int tableNum) {
     int isBreak = 0;
     for (int i = 0 ; i < D231_ROW ; i++) {
         for (int j = 0 ; j < D231_COL ; j++) {
             if (D231[i][j] == tableNum) {
-                goalRow = i;
-                goalCol = j;
+                finalGoalRow = i;
+                finalGoalCol = j;
                 isBreak = 1;
-                printf("goalRow : %d, goalCol : %d\n", i, j);
+                printf("finalGoalRow : %d, finalGoalCol : %d\n", i, j);
                 break;
             }
         }
@@ -125,10 +125,10 @@ int isValid(int row, int col) {
     return (row >= 0 && row < D231_ROW && col >= 0 && col < D231_COL && D231[row][col] == 0);
 }
 
-int heuristic(int row, int col, int goalRow, int goalCol) {
-    return abs(row - goalRow) + abs(col - goalCol); // 맨해튼 거리
+int heuristic(int row, int col, int finalGoalRow, int finalGoalCol) {
+    return abs(row - finalGoalRow) + abs(col - finalGoalCol); // 맨해튼 거리
 
-    // return sqrt(pow(row - goalRow, 2) + pow(col - goalCol, 2)); // 유클리드 거리
+    // return sqrt(pow(row - finalGoalRow, 2) + pow(col - finalGoalCol, 2)); // 유클리드 거리
 }
 
 void printPath(Node* node) {
@@ -150,7 +150,7 @@ void enqueueDirection(Node* node) {
 }
 
 void* aStar(void* arg) {
-    printf("start astar\n");
+    printf("astar thread\n");
     while (1) {
         // if (isEmpty(&findPathQueue)) continue;
 
@@ -167,7 +167,7 @@ void* aStar(void* arg) {
         Node* visitedArr[D231_ROW * D231_COL];
         int visitedArrSize = 0;
 
-        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, goalRow, goalCol), NULL, 0);
+        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, finalGoalRow, finalGoalCol), NULL, 0);
         shouldTravelArr[shouldTravelArrSize++] = startNode;
         
         int isStart = 1;
@@ -215,7 +215,7 @@ void* aStar(void* arg) {
                     // 출발 노드부터 현재 노드까지 거리 계산
                     int gNew = currentNode->g + 1;
                     // 휴리스틱 계산
-                    int hNew = heuristic(newRow, newCol, goalRow, goalCol);
+                    int hNew = heuristic(newRow, newCol, finalGoalRow, finalGoalCol);
                     Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode, i+1);
 
                     // openList에 있는지 확인
@@ -237,7 +237,7 @@ void* aStar(void* arg) {
                     }
                 } else {
                     // 목표에 도달했는지 확인
-                    if (newRow == goalRow && newCol == goalCol) {
+                    if (newRow == finalGoalRow && newCol == finalGoalCol) {
                         printf("destionation access\n");
 
                         pthread_mutex_lock(&enqueueCommendMutex);

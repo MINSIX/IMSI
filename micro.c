@@ -1,16 +1,17 @@
 #include "micro.h"
 
-void* distancecheck()
+void* distancecheck(void* arg)
 {
-  int trig = 23 ;
-  int echo = 24 ;
+  printf("\nhi distance\n");
+  int trig = 27 ;
+  int echo = 22 ;
   int start_time, end_time ;
   float distance ;
   if (wiringPiSetup() == -1) exit(1) ;
 
   pinMode(trig, OUTPUT) ;
   pinMode(echo , INPUT) ;
-
+  int threshold = 30;
 
 
   while(1) {
@@ -27,14 +28,18 @@ void* distancecheck()
     printf("distance %.2f cm\n", distance) ;
     if(distance < threshold)
     {
-      soundmode = 3
+      soundmode = 3;
         //뮤텍스 중단
+      printf("distance is lower than threshold");
+    }
+    else{
+      printf("distance is higher than threshold");
     }
 
 
   }
 
-  return ;
+  return NULL;
 
 }
 
