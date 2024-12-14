@@ -21,9 +21,12 @@ int nowRobotDir = DEFAULT_ROBOT_DIR;
 
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
-#define DEFAULT_DELAY_TIME 3
+#define DEFAULT_DELAY_TIME 5
 #define THRESHOLD_SEC 2
 
+
+int leftFlag = 0;
+int rightFlag = 0;
 // 스텝 모터 핀 배열
 // A(상) B(우) A'(하) B'(좌)
 // 1, 2상 제어 : 4096 스텝
@@ -175,23 +178,23 @@ void moveWheel(int* pin_arr, int isLeft) {
             if(isLeft) {
                 if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time--;
+                    delay_time -= 4;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
                 }
                 if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time++;
+                    delay_time += 4;
                 }
             } else {
                 if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time++;
+                    delay_time += 4;
                 }
                 if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time--;
+                    delay_time -= 4;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
@@ -266,9 +269,9 @@ void* startMoveWheelThread(void* arg) {
         }
         
         // 실험을 위한 코드(15초 동안 진행)
-        // delay(15000);
-        // commandReady = 0;
-        // stopFlag = 1;
+        delay(30000);
+        commandReady = 0;
+        stopFlag = 1;
 
         // 마커인식쪽에서 마커를 인식하면 인식된 마커 번호를 전달하게 하여, 목표 위치와 일치하는지 확인 및 동작 중지
         while(1) {
@@ -288,4 +291,5 @@ void* startMoveWheelThread(void* arg) {
         }
     }
     printf("end move\n");
+    return NULL;
 }

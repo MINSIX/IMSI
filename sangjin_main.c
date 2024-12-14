@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "robot_moving_event.h"
+#include "micro.h"
+#include "readCameraInfo.h"
 
 TaskQueue findPathQueue;
 TaskQueue moveDestinationQueue;
@@ -85,8 +87,15 @@ int main(int argc, char **argv) {
     //     perror("Move 스레드 생성 실패");
     //     return -1;
     // }
+    if (pthread_create(&threads[4], NULL, distancecheck, NULL) != 0) {
+        perror("초음파 스레드 생성 실패");
+        return -1;
+    }
+    if (pthread_create(&thread[5],NULL, watch_and_read_file,NULL) != 0) {
+        perror("카메라 스레드 생성 실패");
+        return -1;
+    }
 
-    
     for(int i = 0; i < num_threads; i++){
       if (pthread_join(threads[i], NULL) != 0) {
             perror("pthread_join failed");

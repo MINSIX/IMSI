@@ -27,6 +27,7 @@ void* distancecheck()
     printf("distance %.2f cm\n", distance) ;
     if(distance < threshold)
     {
+      soundmode = 3
         //뮤텍스 중단
     }
 
