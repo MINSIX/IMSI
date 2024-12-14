@@ -118,10 +118,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 2) {
             if(goalDir == 4) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 3) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 7) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -132,10 +132,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 3) {
             if(goalDir == 2) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 1) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 8) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -146,10 +146,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 4) {
             if(goalDir == 1) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 2) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 6) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -160,10 +160,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 5) {
             if(goalDir == 8) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 6) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 4) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -174,10 +174,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 6) {
             if(goalDir == 5) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 7) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 2) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -188,10 +188,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 7) {
             if(goalDir == 6) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 8) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 3) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -202,10 +202,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 8) {
             if(goalDir == 7) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 5) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 1) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
