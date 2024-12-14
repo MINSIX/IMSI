@@ -14,10 +14,11 @@ int waitThreadCount = 0;
 int goalRow = 0;
 int goalCol = 0;
 int goalDir = 0;
+int markerNum = 0;
 
-int nowRobotRow = DEFAULT_START_ROW;
-int nowRobotCol = DEFAULT_START_COL;
-int nowRobotDir = DEFAULT_ROBOT_DIR;
+// int nowRobotRow;
+// int nowRobotCol;
+// int nowRobotDir;
 
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
@@ -64,32 +65,33 @@ void moveBack(int* pin_arr, int delay_time, int stepNum) {
     }
     delay(delay_time);
 }
-void moveLeft(int* pin_arr, int isLeft, int delay_time) {
+void moveLeft(int* pin_arr, int isLeft, int delay_time, int stepNum) {
     if (isLeft) {
         // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 왼쪽으로 도는데 걸리는 시간)
-        for(int i = 256 ; i > 0 ; i--) {
+        for(int i = stepNum ; i > 0 ; i--) {
             moveBack(pin_arr, delay_time, i);
         }
     } else {
         // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 왼쪽으로 도는데 걸리는 시간)
-        for(int i = 0 ; i < 256 ; i++) {
+        for(int i = 0 ; i < stepNum ; i++) {
             moveFront(pin_arr, delay_time, i);
         }
     }
 }
-void moveRight(int* pin_arr, int isLeft, int delay_time) {
+void moveRight(int* pin_arr, int isLeft, int delay_time, int stepNum) {
     if (isLeft) {
         // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 오른쪽으로 도는데 걸리는 시간)
-        for(int i = 0 ; i < 256 ; i++) {
+        for(int i = 0 ; i < stepNum ; i++) {
             moveFront(pin_arr, delay_time, i);
         }
     } else {
         // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 오른쪽으로 도는데 걸리는 시간)
-        for(int i = 256 ; i > 0 ; i--) {
+        for(int i = stepNum ; i > 0 ; i--) {
             moveBack(pin_arr, delay_time, i);
         }
     }
 }
+
 
 void moveWheel(int* pin_arr, int isLeft) {
     int delay_time = DEFAULT_DELAY_TIME;
@@ -97,15 +99,21 @@ void moveWheel(int* pin_arr, int isLeft) {
     int rightFlagDuration = 0;
     time_t leftFlagStartTime = 0;
     time_t rightFlagStartTime = 0;
-    // 90도 회전 or 조금 회전
-    if(nowRobotDir != goalDir) {
+    // 교차로에서만 동작
+    if(nowRobotDir != goalDir && markerNum < -1) {
         if(nowRobotDir == 1) {
             if(goalDir == 3) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                // 좌회전 90도
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 4) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                // 우회전 90도
+                moveRight(pin_arr, isLeft, delay_time, 4096);
+            } else if(goalDir == 5) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 8) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
             }
         } else if (nowRobotDir == 2) {
             if(goalDir == 4) {
@@ -114,6 +122,12 @@ void moveWheel(int* pin_arr, int isLeft) {
             } else if(goalDir == 3) {
                 // 우회전
                 moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 7) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 6) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
             }
         } else if (nowRobotDir == 3) {
             if(goalDir == 2) {
@@ -122,6 +136,12 @@ void moveWheel(int* pin_arr, int isLeft) {
             } else if(goalDir == 1) {
                 // 우회전
                 moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 8) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 7) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
             }
         } else if (nowRobotDir == 4) {
             if(goalDir == 1) {
@@ -130,6 +150,68 @@ void moveWheel(int* pin_arr, int isLeft) {
             } else if(goalDir == 2) {
                 // 우회전
                 moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 6) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 5) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
+            }
+        } else if (nowRobotDir == 5) {
+            if(goalDir == 8) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 6) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 4) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 1) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
+            }
+        } else if (nowRobotDir == 6) {
+            if(goalDir == 5) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 7) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 2) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 4) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
+            }
+        } else if (nowRobotDir == 7) {
+            if(goalDir == 6) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 8) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 3) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 2) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
+            }
+        } else if (nowRobotDir == 8) {
+            if(goalDir == 7) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 5) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 1) {
+                // 우회전 조금
+                moveRight(pin_arr, isLeft, delay_time, 512);
+            } else if(goalDir == 3) {
+                // 좌회전 조금
+                moveLeft(pin_arr, isLeft, delay_time, 512);
             }
         }
     }
@@ -259,6 +341,7 @@ void* startMoveWheelThread(void* arg) {
         goalRow = task->row;
         goalCol = task->col;
         goalDir = task->direction;
+        markerNum = task->markerNum;
         commandReady = 1; // 명령 준비 완료
         while (1) {
             if (waitThreadCount == 2) {
@@ -269,9 +352,9 @@ void* startMoveWheelThread(void* arg) {
         }
         
         // 실험을 위한 코드(15초 동안 진행)
-        delay(30000);
-        commandReady = 0;
-        stopFlag = 1;
+        // delay(30000);
+        // commandReady = 0;
+        // stopFlag = 1;
 
         // 마커인식쪽에서 마커를 인식하면 인식된 마커 번호를 전달하게 하여, 목표 위치와 일치하는지 확인 및 동작 중지
         while(1) {
