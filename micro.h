@@ -4,8 +4,8 @@
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sound.h>
 
-void* distancecheck();
+extern int soundmode;
+extern void* distancecheck(void* arg);
 
 #endif // MICRO_H

@@ -368,7 +368,7 @@ void* startMoveWheelThread(void* arg) {
                 break;
             } else {
                 printf("잘못된 위치입니다!\n");
-                return;
+                return NULL;
                 // TODO : 잘못된 위치라면 큐에 있는 경로 모두 삭제 후 aStar 호출
             }
         }

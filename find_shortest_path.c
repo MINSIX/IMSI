@@ -139,7 +139,7 @@ void enqueueDirection(Node* node) {
 }
 
 void* aStar(void* arg) {
-    printf("start astar\n");
+    printf("astar thread\n");
     while (1) {
         // if (isEmpty(&findPathQueue)) continue;
 
