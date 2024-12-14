@@ -26,9 +26,18 @@ int main() {
     initStaticValue();
 
     MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
-    moveDestinationTask->row = 14;
-    moveDestinationTask->col = 3;
+    moveDestinationTask->row = 1;
+    moveDestinationTask->col = 5;
+    
     enqueue(&moveDestinationQueue, moveDestinationTask);
+
+    
+    
+    // MarkerRecognitionTask* markerRecognitionTask = (MarkerRecognitionTask*)malloc(sizeof(MarkerRecognitionTask));
+    // markerRecognitionTask->row = 0;
+    // markerRecognitionTask->col = 0;
+    // enqueue(&markerRecognitionLogQueue, markerRecognitionTask);
+    
 
     pthread_t moveWheelThread;
     pthread_create(&moveWheelThread, NULL, startMoveWheelThread, NULL);

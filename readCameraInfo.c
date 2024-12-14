@@ -18,6 +18,30 @@ void splitString(const char *str, char *numbers,char *nonNumbers){
     nonNumbers[nonNumIndex]='\0';
 }
 
+void change_marker2pos(int marker,int* row,int*col){
+    int i = 0;
+    int j = 0;
+
+    int map[6][6] = {
+        {0,100,2,3,4,5},
+        {6,7,8,9,10,1},
+        {12,13,14,15,16,17},
+        {18,19,20,21,22,23},
+        {24,25,26,27,28,29}
+    };
+
+    for (;i<6;i++){
+        for (;j<6;j++){
+            if (map[i][j] == marker){
+                *row = i;
+                *col = j;
+                return;
+            }
+        }
+    }
+    return;
+}
+
 void* watch_and_read_file(){
     int fd,wd;
     FILE *file;
@@ -26,6 +50,14 @@ void* watch_and_read_file(){
 
     char Smark[10];
     char flag[10];
+
+    int marker = 0;
+
+    int m_row=0;
+    int m_col=0;
+
+    MarkerRecognitionTask* markerRecognitionTask = (MarkerRecognitionTask*)malloc(sizeof(MarkerRecognitionTask));
+    
 
     fd = inotify_init();
     if (fd < 0){
@@ -55,7 +87,20 @@ void* watch_and_read_file(){
                     printf("mark : %s\n",Smark);
                     printf("flag : %s\n",flag);
 
-                    printf("aa : %d\n",strcmp(flag,"left\0"));
+                    printf("marker : %s\n",Smark);
+
+                    marker = atoi(Smark);
+                    printf("marker : %d\n",marker);
+                    change_marker2pos(marker,&m_row,&m_col);
+                    
+                    
+
+                    markerRecognitionTask->row = m_row;
+                    markerRecognitionTask->col = m_col;
+                    enqueue(&markerRecognitionLogQueue, markerRecognitionTask);
+
+                    printf("check row : %d %d\n",markerRecognitionTask->row,markerRecognitionTask->col);
+
                     if ( strcmp(flag,"None") == 32){
                         continue;
                     }
