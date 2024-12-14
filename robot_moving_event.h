@@ -5,8 +5,6 @@
 
 #define MAX_TASK_SIZE 100 // 큐의 최대 크기
 
-#define DEFAULT_START_ROW 4
-#define DEFAULT_START_COL 6
 #define DEFAULT_ROBOT_DIR 1
 
 typedef struct TaskQueue{
@@ -23,6 +21,7 @@ typedef struct FindPathTask {
 } FindPathTask;
 
 typedef struct MoveDestinationTask {
+    int markerNum;
     int row;
     int col;
     int direction;
