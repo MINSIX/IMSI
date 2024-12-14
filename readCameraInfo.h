@@ -14,5 +14,6 @@
 
 
 void* watch_and_read_file();
+void change_marker2pos(int marker,int* row,int*col);
 void splitString(const char *str, char *numbers,char *nonNumbers);
 #endif
