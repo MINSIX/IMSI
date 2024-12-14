@@ -11,6 +11,14 @@ int commandReady = 0; // 명령이 준비되었는지 여부
 int stopFlag = 0;
 int waitThreadCount = 0;
 
+int goalRow = 0;
+int goalCol = 0;
+int goalDir = 0;
+
+int nowRobotRow = DEFAULT_START_ROW;
+int nowRobotCol = DEFAULT_START_COL;
+int nowRobotDir = DEFAULT_ROBOT_DIR;
+
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
 #define DEFAULT_DELAY_TIME 3
@@ -41,12 +49,87 @@ void init_Step(int* pin_arr) {
     }
 }
 
-void moveFront(int* pin_arr, int isLeft) {
+void moveFront(int* pin_arr, int delay_time, int stepNum) {
+    for (int i = 0; i < 4; i++) {
+        digitalWrite(pin_arr[i], one_phase[stepNum % 8][i]);
+    }
+    delay(delay_time);
+}
+void moveBack(int* pin_arr, int delay_time, int stepNum) {
+    for (int i = 0; i < 4; i++) {
+        digitalWrite(pin_arr[i], one_phase[stepNum % 8][i]);
+    }
+    delay(delay_time);
+}
+void moveLeft(int* pin_arr, int isLeft, int delay_time) {
+    if (isLeft) {
+        // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 왼쪽으로 도는데 걸리는 시간)
+        for(int i = 256 ; i > 0 ; i--) {
+            moveBack(pin_arr, delay_time, i);
+        }
+    } else {
+        // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 왼쪽으로 도는데 걸리는 시간)
+        for(int i = 0 ; i < 256 ; i++) {
+            moveFront(pin_arr, delay_time, i);
+        }
+    }
+}
+void moveRight(int* pin_arr, int isLeft, int delay_time) {
+    if (isLeft) {
+        // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 오른쪽으로 도는데 걸리는 시간)
+        for(int i = 0 ; i < 256 ; i++) {
+            moveFront(pin_arr, delay_time, i);
+        }
+    } else {
+        // TODO : 실험을 통해 스텝 수 조절 (직각으로 도는데 걸리는 시간 or 오른쪽으로 도는데 걸리는 시간)
+        for(int i = 256 ; i > 0 ; i--) {
+            moveBack(pin_arr, delay_time, i);
+        }
+    }
+}
+
+void moveWheel(int* pin_arr, int isLeft) {
     int delay_time = DEFAULT_DELAY_TIME;
     int leftFlagDuration = 0;
     int rightFlagDuration = 0;
     time_t leftFlagStartTime = 0;
     time_t rightFlagStartTime = 0;
+    // 90도 회전 or 조금 회전
+    if(nowRobotDir != goalDir) {
+        if(nowRobotDir == 1) {
+            if(goalDir == 3) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 4) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            }
+        } else if (nowRobotDir == 2) {
+            if(goalDir == 4) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 3) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            }
+        } else if (nowRobotDir == 3) {
+            if(goalDir == 2) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 1) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            }
+        } else if (nowRobotDir == 4) {
+            if(goalDir == 1) {
+                // 좌회전
+                moveLeft(pin_arr, isLeft, delay_time);
+            } else if(goalDir == 2) {
+                // 우회전
+                moveRight(pin_arr, isLeft, delay_time);
+            }
+        }
+    }
     while(1) {
         for(int i = 0; i < 256; i++) {
             // if(ultrasoundFlag) {
@@ -89,7 +172,6 @@ void moveFront(int* pin_arr, int isLeft) {
                 rightFlagStartTime = 0;
             }
 
-
             if(isLeft) {
                 if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
                     rightFlagStartTime = time(NULL); 
@@ -121,55 +203,7 @@ void moveFront(int* pin_arr, int isLeft) {
                 delay_time = DEFAULT_DELAY_TIME; 
             }
 
-            for (int j = 0; j < 4; j++) {
-                digitalWrite(pin_arr[j], one_phase[i % 8][j]);
-            }
-            delay(delay_time);
-        }
-    }
-}
-void moveBack(int* pin_arr, int isLeft) {
-    int delay_time = DEFAULT_DELAY_TIME;
-    while(1) {
-        for(int i = 4096; i > 0; i--) {
-            // if(ultrasoundFlag) {
-            //     // TODO : ultrasoundFlag가 true가 될 때까지 대기
-            // }
-            if(stopFlag) {
-                return;
-            }
-
-            if(isLeft) {
-                // if (rightFlag) {
-                //     delay_time++;
-                // }
-                // if (leftFlag) {
-                //     delay_time--;
-                //     if (delay_time <= 0) {
-                //         delay_time = 1;
-                //     }
-                // }
-            } else {
-                // if (rightFlag) {
-                //     delay_time--;
-                //     if (delay_time <= 0) {
-                //         delay_time = 1;
-                //     }
-                // }
-                // if (leftFlag) {
-                //     delay_time++;
-                // }
-            }
-
-            // 플래그가 모두 0일 때 기본 지연 시간으로 설정
-            // if (!leftFlag && !rightFlag) {
-            //     delay_time = DEFAULT_DELAY_TIME; 
-            // }
-
-            for (int j = 0; j < 4; j++) {
-                digitalWrite(pin_arr[j], one_phase[i % 8][j]);
-            }
-            delay(delay_time);
+            moveFront(pin_arr, delay_time, i);
         }
     }
 }
@@ -183,7 +217,7 @@ void* leftWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(left_arr, 1);
+        moveWheel(left_arr, 1);
     }
     return NULL;
 }
@@ -197,8 +231,7 @@ void* rightWheelThread(void* arg) {
         }
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
-        moveFront(right_arr, 0);
-        // moveBack(right_arr, 0);
+        moveWheel(right_arr, 0);
     }
 }
 
@@ -216,13 +249,13 @@ void* startMoveWheelThread(void* arg) {
     delay(10);
 
     while(1) {
-        if (isEmpty(&moveDestinationQueue)) {
-            continue;
-        }
-        
-        delay(10);
-        printf("dequeue direction\n");
         MoveDestinationTask* task = dequeue(&moveDestinationQueue);
+        printf("dequeue direction\n");
+        delay(10);
+
+        goalRow = task->row;
+        goalCol = task->col;
+        goalDir = task->direction;
         commandReady = 1; // 명령 준비 완료
         while (1) {
             if (waitThreadCount == 2) {
@@ -238,32 +271,21 @@ void* startMoveWheelThread(void* arg) {
         // stopFlag = 1;
 
         // 마커인식쪽에서 마커를 인식하면 인식된 마커 번호를 전달하게 하여, 목표 위치와 일치하는지 확인 및 동작 중지
-        int goalRow = task->row;
-        int goalCol = task->col;
         while(1) {
-            if (isEmpty(&markerRecognitionLogQueue)) {
-                continue;
-            }
             MarkerRecognitionTask* marker = dequeue(&markerRecognitionLogQueue);
-            if (goalRow == marker->row && goalCol == marker->col) {
+            nowRobotRow = marker->row;
+            nowRobotCol = marker->col;
+            if (goalRow == nowRobotRow && goalCol == nowRobotCol) {
+                nowRobotDir = goalDir;
                 commandReady = 0;
                 stopFlag = 1;
                 break;
             } else {
                 printf("잘못된 위치입니다!\n");
                 return;
-                // TODO : 잘못된 위치라면 큐에 있는 경로 모두 삭제 후 다시 경로 계산?
+                // TODO : 잘못된 위치라면 큐에 있는 경로 모두 삭제 후 aStar 호출
             }
         }
-
-        // TODO : 버튼 클릭을 기다리고, 클릭되면 되돌아가기 함수 넣어야함
-
-        // 1. 큐에 작업이 있으면 dequeue 후 작업에 있는 목표 row, col까지 라인트레이싱하면서 진행
-        // 2. 진행하면서 라인트레이싱 스레드가 지시히는 leftFlag, rightFlag를 통해 바퀴 속도 제어
-        // 3. 진행 중 센싱 (초음파 센서를 통해 장애물이 앞에 있으면 멈추고 부저를 울린다. / 가속도 센서의 각이 갑자기 엇나가는 순간에 부저를 울린다.)
-        // 4. 진행 중 마커 인식 스레드가 마커를 인식하고 마커를 통한 현재위치 정보(row, col)를 전달하면, 목표 row, col과 대조
-        // 5. 위의 과정을 반복하여 목표 위치에 도착 후 복귀 명령이 올 때 까지 무한 대기
-        // 6. 복귀는 현재 위치까지 올 때 기록해놨던 스택에서 pop하면서 진행(단, 후진을 기본값으로 설정)
     }
     printf("end move\n");
 }
