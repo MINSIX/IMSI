@@ -5,7 +5,7 @@
 
 #define MAX_TASK_SIZE 100 // 큐의 최대 크기
 
-#define DEFAULT_ROBOT_DIR 1
+#define DEFAULT_ROBOT_DIR 3
 
 typedef struct TaskQueue{
     void* task[MAX_TASK_SIZE];
@@ -42,9 +42,11 @@ extern int leftFlag;
 extern int rightFlag;
 extern int markerFlag;
 extern int ultrasoundFlag;
-
+extern int stopFlag;
 extern int nowRow;
 extern int nowCol;
+
+extern int isReturn;
 
 extern int nowRobotRow;
 extern int nowRobotCol;

@@ -5,6 +5,8 @@
 #include <time.h> 
 #include "robot_moving_event.h"
 
+int isReturn = 0;
+
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 int commandReady = 0; // 명령이 준비되었는지 여부
@@ -22,8 +24,16 @@ int markerNum = 0;
 
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
+
 #define DEFAULT_DELAY_TIME 10
-#define THRESHOLD_SEC 5
+#define PLUS_DELAY_TIME 1
+#define MINUS_DELAY_TIME 3
+#define PLUS_DEALY_WEIGHT 1
+
+#define DELAY_TRANSFER_THRESHOLD_SEC 5
+
+#define ANGLE_45 512
+#define ANGLE_90 4096
 
 
 int leftFlag = 0;
@@ -103,120 +113,78 @@ void moveWheel(int* pin_arr, int isLeft) {
     for (int i = 0 ; i < 128 ; i++) {
         moveFront(pin_arr, delay_time, i);
     }
-    // 교차로에서만 동작
     printf("%d", nowRobotDir);
+    // 교차로에서만 동작
     if(nowRobotDir != goalDir) {
         if(nowRobotDir == 1) {
-            if(goalDir == 3) {
-                // 좌회전 90도
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 4) {
-                // 우회전 90도
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 5) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 8) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
+            if(nowRobotDir + 7 == goalDir) {
+                // 45도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir + 6 == goalDir) {
+                // 90도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_90);
+            } else if(nowRobotDir + 1 == goalDir) {
+                // 45도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir + 2 == goalDir) {
+                // 90도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_90);
             }
-        } else if (nowRobotDir == 2) {
-            if(goalDir == 4) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 3) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 7) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 6) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
+        } else if(nowRobotDir == 2) {
+            if(nowRobotDir - 1 == goalDir) {
+                // 45도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir + 6 == goalDir) {
+                // 90도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_90);
+            } else if(nowRobotDir + 1 == goalDir) {
+                // 45도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir + 2 == goalDir) {
+                // 90도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_90);
             }
-        } else if (nowRobotDir == 3) {
-            if(goalDir == 2) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 8192);
-            } else if(goalDir == 1) {
-                // 우회전 지금 실험 방향
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 8) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 7) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
+        } else if(nowRobotDir == 7) {
+            if(nowRobotDir - 1 == goalDir) {
+                // 45도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir - 2 == goalDir) {
+                // 90도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_90);
+            } else if(nowRobotDir + 1 == goalDir) {
+                // 45도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir - 6 == goalDir) {
+                // 90도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_90);
             }
-        } else if (nowRobotDir == 4) {
-            if(goalDir == 1) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 2) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 6) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 5) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
+        } else if(nowRobotDir == 8) {
+            if(nowRobotDir - 1 == goalDir) {
+                // 45도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir - 2 == goalDir) {
+                // 90도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_90);
+            } else if(nowRobotDir - 7 == goalDir) {
+                // 45도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir - 6 == goalDir) {
+                // 90도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_90);
             }
-        } else if (nowRobotDir == 5) {
-            if(goalDir == 8) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 6) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 4) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 1) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
-            }
-        } else if (nowRobotDir == 6) {
-            if(goalDir == 5) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 7) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 2) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 4) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
-            }
-        } else if (nowRobotDir == 7) {
-            if(goalDir == 6) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 8) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 3) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 2) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
-            }
-        } else if (nowRobotDir == 8) {
-            if(goalDir == 7) {
-                // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 5) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time, 4096);
-            } else if(goalDir == 1) {
-                // 우회전 조금
-                moveRight(pin_arr, isLeft, delay_time, 512);
-            } else if(goalDir == 3) {
-                // 좌회전 조금
-                moveLeft(pin_arr, isLeft, delay_time, 512);
+        } else {
+            if(nowRobotDir - 1 == goalDir) {
+                // 45도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir - 2 == goalDir) {
+                // 90도 좌회전
+                moveLeft(pin_arr, isLeft, delay_time, ANGLE_90);
+            } else if(nowRobotDir + 1 == goalDir) {
+                // 45도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_45);
+            } else if(nowRobotDir + 2 == goalDir) {
+                // 90도 우회전
+                moveRight(pin_arr, isLeft, delay_time, ANGLE_90);
             }
         }
     }
@@ -232,13 +200,15 @@ void moveWheel(int* pin_arr, int isLeft) {
             }
 
             if (leftFlag) {
-                // 플래그가 활성화된 시간 기록
-                if (leftFlagStartTime == 0) {
-                    leftFlagStartTime = time(NULL); 
-                    // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
-                    leftFlagDuration = THRESHOLD_SEC+1;
-                } else{
-                    leftFlagDuration = time(NULL) - leftFlagStartTime;
+                if(leftFlag != -1) {
+                    // 플래그가 활성화된 시간 기록
+                    if (leftFlagStartTime == 0) {
+                        leftFlagStartTime = time(NULL); 
+                        // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                        leftFlagDuration = DELAY_TRANSFER_THRESHOLD_SEC+1;
+                    } else{
+                        leftFlagDuration = time(NULL) - leftFlagStartTime;
+                    }
                 }
             } else {
                 // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
@@ -247,15 +217,16 @@ void moveWheel(int* pin_arr, int isLeft) {
             }
 
             if (rightFlag) {
-                // 플래그가 활성화된 시간 기록
-                if (rightFlagStartTime == 0) {
-                    rightFlagStartTime = time(NULL);
-                    // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
-                    rightFlagDuration = THRESHOLD_SEC+1;
-                } else {
-                    rightFlagDuration = time(NULL) - rightFlagStartTime; 
+                if(rightFlag != -1) {
+                    // 플래그가 활성화된 시간 기록
+                    if (rightFlagStartTime == 0) {
+                        rightFlagStartTime = time(NULL);
+                        // 플래그가 최초로 설정되면 임계시간을 넘지않아도 바로 회전을 할 수 있도록 설정
+                        rightFlagDuration = DELAY_TRANSFER_THRESHOLD_SEC+1;
+                    } else {
+                        rightFlagDuration = time(NULL) - rightFlagStartTime; 
+                    }
                 }
-                
             } else {
                 // 플래그 비활성화 시 시작 시간 및 유지 시간 리셋
                 rightFlagDuration = 0; 
@@ -263,27 +234,25 @@ void moveWheel(int* pin_arr, int isLeft) {
             }
 
             if(isLeft) {
-                if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
+                if (rightFlag && rightFlagDuration > DELAY_TRANSFER_THRESHOLD_SEC) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time -= 3;
+                    delay_time -= MINUS_DELAY_TIME;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
                 }
-                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                if (leftFlag && leftFlagDuration > DELAY_TRANSFER_THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time += 1;
-                    // delay_time = 0;
+                    delay_time += PLUS_DELAY_TIME;
                 }
             } else {
-                if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
+                if (rightFlag && (rightFlagDuration > DELAY_TRANSFER_THRESHOLD_SEC)) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time += 1;
-                    // delay_time = 0;
+                    delay_time += PLUS_DELAY_TIME;
                 }
-                if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
+                if (leftFlag && leftFlagDuration > DELAY_TRANSFER_THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time -= 3;
+                    delay_time -= MINUS_DELAY_TIME;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
@@ -295,12 +264,17 @@ void moveWheel(int* pin_arr, int isLeft) {
                 delay_time = DEFAULT_DELAY_TIME; 
             }
             
-            // if (delay_time < 0) {
+            // 직각일 상황에서 멈추고 도는게 아니라면 임계치를 넘었을 때 뒤로 돌게 해야함
+            // if (delay_time > DEFAULT_DELAY_TIME + ) {
             //     moveBack(pin_arr, -(delay_time), i);
             // } else {
             //     moveFront(pin_arr, delay_time, i);
             // }
-            moveFront(pin_arr, delay_time, i);
+            if(leftFlag != -1 && rightFlag != -1) {
+                moveFront(pin_arr, delay_time, i);
+            } else {
+                printf("leftFlag, rightFlag is -1");
+            }
         }
     }
 }
@@ -315,6 +289,7 @@ void* leftWheelThread(void* arg) {
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
         moveWheel(left_arr, 1);
+        delay(10);
     }
     return NULL;
 }
@@ -329,6 +304,7 @@ void* rightWheelThread(void* arg) {
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
         moveWheel(right_arr, 0);
+        delay(10);
         printf("end!\n");
     }
 }
@@ -340,7 +316,7 @@ void* startMoveWheelThread(void* arg) {
     init_Step(left_arr);
 
     pthread_t leftThread, rightThread;
-    
+
     pthread_create(&leftThread, NULL, leftWheelThread, NULL);
     pthread_create(&rightThread, NULL, rightWheelThread, NULL);
     // 바퀴가 동시에 돌기 위해서 둘 다 wait 상태에 걸리도록 조금 대기해야함!!
@@ -359,6 +335,7 @@ void* startMoveWheelThread(void* arg) {
         while (1) {
             if (waitThreadCount == 2) {
                 waitThreadCount = 0;
+                stopFlag = 0;
                 pthread_cond_broadcast(&cond); // 모든 스레드에 신호 전송
                 break;
             }
@@ -385,6 +362,20 @@ void* startMoveWheelThread(void* arg) {
                 // TODO : 잘못된 위치라면 큐에 있는 경로 모두 삭제 후 aStar 호출
             }
         }
+
+        // 최종 목표에 도착하였다면 복귀로직 시작
+        if (isEmpty(&markerRecognitionLogQueue)) {
+            isReturn = isReturn ^ 1;
+            if(isReturn) {
+                // 로봇 복귀를 위한 경로 탐색 후 동작
+                FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+                findPathTask->tableNum = 1;
+                aStar(findPathTask);
+                // 10초 대기 후 복귀 동작
+                delay(10000);
+            }
+        }
+        // TODO : 작업에 대한 복귀가 끝나서 다음 작업을 들여보내라는 신호를 줘야함
     }
     printf("end move\n");
     return NULL;
