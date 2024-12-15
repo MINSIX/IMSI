@@ -22,8 +22,8 @@ int markerNum = 0;
 
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
-#define DEFAULT_DELAY_TIME 5
-#define THRESHOLD_SEC 2
+#define DEFAULT_DELAY_TIME 10
+#define THRESHOLD_SEC 5
 
 
 int leftFlag = 0;
@@ -99,8 +99,13 @@ void moveWheel(int* pin_arr, int isLeft) {
     int rightFlagDuration = 0;
     time_t leftFlagStartTime = 0;
     time_t rightFlagStartTime = 0;
+
+    for (int i = 0 ; i < 128 ; i++) {
+        moveFront(pin_arr, delay_time, i);
+    }
     // 교차로에서만 동작
-    if(nowRobotDir != goalDir && markerNum < -1) {
+    printf("%d", nowRobotDir);
+    if(nowRobotDir != goalDir) {
         if(nowRobotDir == 1) {
             if(goalDir == 3) {
                 // 좌회전 90도
@@ -118,10 +123,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 2) {
             if(goalDir == 4) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 3) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 7) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -132,10 +137,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 3) {
             if(goalDir == 2) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 8192);
             } else if(goalDir == 1) {
-                // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                // 우회전 지금 실험 방향
+                moveRight(pin_arr, isLeft, delay_time, 512);
             } else if(goalDir == 8) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -146,10 +151,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 4) {
             if(goalDir == 1) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 2) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 6) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -160,10 +165,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 5) {
             if(goalDir == 8) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 6) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 4) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -174,10 +179,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 6) {
             if(goalDir == 5) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 7) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 2) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -188,10 +193,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 7) {
             if(goalDir == 6) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 8) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 3) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -202,10 +207,10 @@ void moveWheel(int* pin_arr, int isLeft) {
         } else if (nowRobotDir == 8) {
             if(goalDir == 7) {
                 // 좌회전
-                moveLeft(pin_arr, isLeft, delay_time);
+                moveLeft(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 5) {
                 // 우회전
-                moveRight(pin_arr, isLeft, delay_time);
+                moveRight(pin_arr, isLeft, delay_time, 4096);
             } else if(goalDir == 1) {
                 // 우회전 조금
                 moveRight(pin_arr, isLeft, delay_time, 512);
@@ -260,23 +265,25 @@ void moveWheel(int* pin_arr, int isLeft) {
             if(isLeft) {
                 if (rightFlag && rightFlagDuration > THRESHOLD_SEC) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time -= 4;
+                    delay_time -= 3;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
                 }
                 if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time += 4;
+                    delay_time += 1;
+                    // delay_time = 0;
                 }
             } else {
                 if (rightFlag && (rightFlagDuration > THRESHOLD_SEC)) {
                     rightFlagStartTime = time(NULL); 
-                    delay_time += 4;
+                    delay_time += 1;
+                    // delay_time = 0;
                 }
                 if (leftFlag && leftFlagDuration > THRESHOLD_SEC) {
                     leftFlagStartTime = time(NULL); 
-                    delay_time -= 4;
+                    delay_time -= 3;
                     if (delay_time <= 0) {
                         delay_time = 1;
                     }
@@ -287,7 +294,12 @@ void moveWheel(int* pin_arr, int isLeft) {
             if (!leftFlag && !rightFlag) {
                 delay_time = DEFAULT_DELAY_TIME; 
             }
-
+            
+            // if (delay_time < 0) {
+            //     moveBack(pin_arr, -(delay_time), i);
+            // } else {
+            //     moveFront(pin_arr, delay_time, i);
+            // }
             moveFront(pin_arr, delay_time, i);
         }
     }
@@ -317,6 +329,7 @@ void* rightWheelThread(void* arg) {
         pthread_mutex_unlock(&mutex); // 뮤텍스 해제
 
         moveWheel(right_arr, 0);
+        printf("end!\n");
     }
 }
 
