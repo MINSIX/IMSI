@@ -76,7 +76,9 @@ int main(int argc, char **argv) {
     
     int num_threads = 10;  // 생성할 스레드 개수
     pthread_t threads[num_threads];
-
+    FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+    findPathTask->tableNum = 3;
+    enqueue(&findPathQueue, findPathTask);
 
     // 사운드 관리 스레드 시작
 
@@ -92,21 +94,19 @@ int main(int argc, char **argv) {
         perror("Path 스레드 생성 실패");
         return -1;
     }
-    // if (pthread_create(&threads[3], NULL, startMoveWheelThread, NULL) != 0) {
-    //     perror("Move 스레드 생성 실패");
-    //     return -1;
-    // }
-    if (pthread_create(&threads[3], NULL, distancecheck, NULL) != 0) {
-        perror("초음파 스레드 생성 실패");
+    if (pthread_create(&threads[3], NULL, startMoveWheelThread, NULL) != 0) {
+        perror("Move 스레드 생성 실패");
         return -1;
     }
-    else{
-        printf("success \n");
-    }
-    // if (pthread_create(&thread[5],NULL, watch_and_read_file,NULL) != 0) {
-    //     perror("카메라 스레드 생성 실패");
+    // if (pthread_create(&threads[3], NULL, distancecheck, NULL) != 0) {
+    //     perror("초음파 스레드 생성 실패");
     //     return -1;
     // }
+
+    if (pthread_create(&threads[4],NULL, watch_and_read_file,NULL) != 0) {
+        perror("카메라 스레드 생성 실패");
+        return -1;
+    }
 
     for(int i = 0; i < num_threads; i++){
       if (pthread_join(threads[i], NULL) != 0) {
