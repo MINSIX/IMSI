@@ -19,36 +19,36 @@ void destroyStaticValue() {
 }
 
 // 최단 경로 탐색 테스트 main
-// int main() {
-//     initStaticValue();
-
-//     FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
-//     findPathTask->tableNum = 21;
-//     enqueue(&findPathQueue, findPathTask);
-
-//     pthread_t aStarThread;
-//     pthread_create(&aStarThread, NULL, aStar, NULL);
-    
-//     pthread_join(aStarThread, NULL); 
-
-//     destroyStaticValue();
-//     return 0;
-// }
-
-// 로봇 전진 테스트 main
 int main() {
     initStaticValue();
 
-    MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
-    moveDestinationTask->row = 14;
-    moveDestinationTask->col = 3;
-    enqueue(&moveDestinationQueue, moveDestinationTask);
+    FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+    findPathTask->tableNum = -3;
+    enqueue(&findPathQueue, findPathTask);
 
-    pthread_t moveWheelThread;
-    pthread_create(&moveWheelThread, NULL, startMoveWheelThread, NULL);
+    pthread_t aStarThread;
+    pthread_create(&aStarThread, NULL, aStar, NULL);
     
-    pthread_join(moveWheelThread, NULL); 
+    pthread_join(aStarThread, NULL); 
 
     destroyStaticValue();
     return 0;
 }
+
+// 로봇 전진 테스트 main
+// int main() {
+//     initStaticValue();
+
+//     MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
+//     moveDestinationTask->row = 14;
+//     moveDestinationTask->col = 3;
+//     enqueue(&moveDestinationQueue, moveDestinationTask);
+
+//     pthread_t moveWheelThread;
+//     pthread_create(&moveWheelThread, NULL, startMoveWheelThread, NULL);
+    
+//     pthread_join(moveWheelThread, NULL); 
+
+//     destroyStaticValue();
+//     return 0;
+// }

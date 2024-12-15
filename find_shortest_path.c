@@ -9,7 +9,6 @@
 #define D229_DEMO_ROW 7
 #define D229_DEMO_COL 4
 
-// 헤더파일에 있는 DEFAULT 위치 그냥 날려야할듯
 int nowRobotRow = D229_DEMO_ROW - 1;
 int nowRobotCol = D229_DEMO_COL - 1;
 int nowRobotDir = DEFAULT_ROBOT_DIR;
@@ -138,134 +137,136 @@ void enqueueDirection(Node* node) {
     printf("marker : %d %d\n", moveDestinationTask->row, moveDestinationTask->col);
 }
 
-void* aStar(void* arg) {
-    printf("astar thread\n");
-    while (1) {
-        // if (isEmpty(&findPathQueue)) continue;
+void aStar(FindPathTask* findPathTask) {
+    printf("astar!\n");
+    int startRow = nowRobotRow;
+    int startCol = nowRobotCol;
+    int tableNum = findPathTask->tableNum;
 
-        FindPathTask* findPathTask = dequeue(&findPathQueue);
-        printf("dequeue: %d", findPathTask->tableNum);
-        int startRow = nowRobotRow;
-        int startCol = nowRobotCol;
-        int tableNum = findPathTask->tableNum;
+    tabelNumToCoordinate(tableNum);
 
-        tabelNumToCoordinate(tableNum);
+    Node* shouldTravelArr[D229_DEMO_ROW * D229_DEMO_COL];
+    int shouldTravelArrSize = 0;
+    Node* visitedArr[D229_DEMO_ROW * D229_DEMO_COL];
+    int visitedArrSize = 0;
 
-        Node* shouldTravelArr[D229_DEMO_ROW * D229_DEMO_COL];
-        int shouldTravelArrSize = 0;
-        Node* visitedArr[D229_DEMO_ROW * D229_DEMO_COL];
-        int visitedArrSize = 0;
-
-        Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, finalGoalRow, finalGoalCol), NULL, 0);
-        shouldTravelArr[shouldTravelArrSize++] = startNode;
-        
-        int isStart = 1;
-        while (shouldTravelArrSize > 0) {
-            // 가장 낮은 f 값을 가진 노드 찾기
-            int minIndex = 0;
-            for (int i = 1; i < shouldTravelArrSize; i++) {
-                if (shouldTravelArr[i]->f < shouldTravelArr[minIndex]->f) {
-                    minIndex = i;
-                }
-            }
-
-            Node* currentNode = shouldTravelArr[minIndex];
-            int currentNodeNum = D229_Demo[currentNode->row][currentNode->col];
-            if (currentNode->row == finalGoalRow && currentNode->col == finalGoalCol) {
-                printf("destionation access\n");
-
-                pthread_mutex_lock(&enqueueCommendMutex);
-                
-                printf("start enqueue direction\n");
-                enqueueDirection(currentNode);
-                pthread_mutex_unlock(&enqueueCommendMutex);
-                return NULL;
-            }
-
-            // 현재 노드를 openList에서 제거하고 closedList에 추가
-            for (int i = minIndex; i < shouldTravelArrSize - 1; i++) {
-                shouldTravelArr[i] = shouldTravelArr[i + 1];
-            }
-            shouldTravelArrSize--;
-            visitedArr[visitedArrSize++] = currentNode;
-
-            // 이웃 노드 탐색
-            int directions[8][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, 1}, {1, 1}, {1, -1}, {-1, -1}}; // 상 하 좌 우 우상 우하 좌하 좌상
-            for (int i = 0; i < 8; i++) {
-                if (isStart) {
-                    if (nowRobotDir+1 == i+1 || nowRobotDir-1 == i+1) {
-                        isStart = 0;
-                        continue;
-                    }
-                }
-                int newRow = currentNode->row + directions[i][0];
-                int newCol = currentNode->col + directions[i][1];
-                if (isValid(newRow, newCol)) {
-                    int newNodeNum = D229_Demo[newRow][newCol];
-                    if(newNodeNum == -1) {
-                        // -1로 못감
-                        continue;
-                    }
-                    if(currentNodeNum == 0 && newNodeNum == 0) {
-                        // 길끼리 대각선으로 이어지면 안되는 경우
-                        if(i > 3) {
-                            // 대각선 경로를 기록하여 기록한 경로가 아니면 continue 하도록 설정
-                            if ((!(currentNode->row == 2 && currentNode ->col == 1 && newRow == 1 && newCol == 2) 
-                                    || (currentNode->row == 1 && currentNode ->col == 2 && newRow == 2 && newCol == 1))) {
-                                continue;
-                            }
-                        } 
-                        // 길끼리 상하좌우로 이어지면 안되는 경우
-                        else {
-                            if (((currentNode->row == 1 && currentNode ->col == 3 && newRow == 1 && newCol == 2) 
-                                    || (currentNode->row == 1 && currentNode ->col == 2 && newRow == 1 && newCol == 3))) {
-                                continue;
-                            }
-                        }
-                    }
-
-                    // 이미 방문한 적 있는 노드인지 확인
-                    int foundInClosed = 0;
-                    for (int j = 0; j < visitedArrSize; j++) {
-                        if (visitedArr[j]->row == newRow && visitedArr[j]->col == newCol) {
-                            foundInClosed = 1;
-                            break;
-                        }
-                    }
-                    if (foundInClosed) continue;
-
-                    // 출발 노드부터 현재 노드까지 거리 계산
-                    int gNew = currentNode->g + 1;
-                    // 휴리스틱 계산
-                    int hNew = heuristic(newRow, newCol, finalGoalRow, finalGoalCol);
-                    Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode, i+1);
-
-                    // openList에 있는지 확인
-                    // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
-                    int foundInOpen = 0;
-                    for (int j = 0; j < shouldTravelArrSize; j++) {
-                        if (shouldTravelArr[j]->row == newRow && shouldTravelArr[j]->col == newCol) {
-                            foundInOpen = 1;
-                            if (gNew < shouldTravelArr[j]->g) {
-                                shouldTravelArr[j]->g = gNew;
-                                shouldTravelArr[j]->f = gNew + hNew;
-                                shouldTravelArr[j]->parent = currentNode;
-                            }
-                            break;
-                        }
-                    }
-                    if (!foundInOpen) {
-                        shouldTravelArr[shouldTravelArrSize++] = newNode;
-                    }
-                }
+    Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, finalGoalRow, finalGoalCol), NULL, 0);
+    shouldTravelArr[shouldTravelArrSize++] = startNode;
+    
+    int isStart = 1;
+    while (shouldTravelArrSize > 0) {
+        // 가장 낮은 f 값을 가진 노드 찾기
+        int minIndex = 0;
+        for (int i = 1; i < shouldTravelArrSize; i++) {
+            if (shouldTravelArr[i]->f < shouldTravelArr[minIndex]->f) {
+                minIndex = i;
             }
         }
 
-        printf("목표에 도달할 수 없습니다.\n");
+        Node* currentNode = shouldTravelArr[minIndex];
+        int currentNodeNum = D229_Demo[currentNode->row][currentNode->col];
+        if (currentNode->row == finalGoalRow && currentNode->col == finalGoalCol) {
+            printf("destionation access\n");
+
+            pthread_mutex_lock(&enqueueCommendMutex);
+            
+            printf("start enqueue direction\n");
+            enqueueDirection(currentNode);
+            pthread_mutex_unlock(&enqueueCommendMutex);
+            return;
+        }
+
+        // 현재 노드를 openList에서 제거하고 closedList에 추가
+        for (int i = minIndex; i < shouldTravelArrSize - 1; i++) {
+            shouldTravelArr[i] = shouldTravelArr[i + 1];
+        }
+        shouldTravelArrSize--;
+        visitedArr[visitedArrSize++] = currentNode;
+
+        // 이웃 노드 탐색
+        int directions[8][2] = {{-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}}; // 상 우상 우 우하 하 좌하 좌 좌상
+        for (int i = 0; i < 8; i++) {
+            if (isStart) {
+                if (nowRobotDir - 4 == i+1 || nowRobotDir + 4 == i+1) {
+                    continue;
+                }
+                isStart = 0;
+            }
+            int newRow = currentNode->row + directions[i][0];
+            int newCol = currentNode->col + directions[i][1];
+            if (isValid(newRow, newCol)) {
+                int newNodeNum = D229_Demo[newRow][newCol];
+                if(newNodeNum == -1) {
+                    // -1로 못감
+                    continue;
+                }
+                if(currentNodeNum == 0 && newNodeNum == 0) {
+                    // 길끼리 대각선으로 이어지면 안되는 경우
+                    if(i > 3) {
+                        // 대각선 경로를 기록하여 기록한 경로가 아니면 continue 하도록 설정
+                        if ((!(currentNode->row == 2 && currentNode ->col == 1 && newRow == 1 && newCol == 2) 
+                                || (currentNode->row == 1 && currentNode ->col == 2 && newRow == 2 && newCol == 1))) {
+                            continue;
+                        }
+                    } 
+                    // 길끼리 상하좌우로 이어지면 안되는 경우
+                    else {
+                        if (((currentNode->row == 1 && currentNode ->col == 3 && newRow == 1 && newCol == 2) 
+                                || (currentNode->row == 1 && currentNode ->col == 2 && newRow == 1 && newCol == 3))) {
+                            continue;
+                        }
+                    }
+                }
+
+                // 이미 방문한 적 있는 노드인지 확인
+                int foundInClosed = 0;
+                for (int j = 0; j < visitedArrSize; j++) {
+                    if (visitedArr[j]->row == newRow && visitedArr[j]->col == newCol) {
+                        foundInClosed = 1;
+                        break;
+                    }
+                }
+                if (foundInClosed) continue;
+
+                // 출발 노드부터 현재 노드까지 거리 계산
+                int gNew = currentNode->g + 1;
+                // 휴리스틱 계산
+                int hNew = heuristic(newRow, newCol, finalGoalRow, finalGoalCol);
+                Node* newNode = createNode(newRow, newCol, gNew, hNew, currentNode, i+1);
+
+                // openList에 있는지 확인
+                // 있으면 기존의 경로와 새 경로 비교 후 최단 경로로 갱신
+                int foundInOpen = 0;
+                for (int j = 0; j < shouldTravelArrSize; j++) {
+                    if (shouldTravelArr[j]->row == newRow && shouldTravelArr[j]->col == newCol) {
+                        foundInOpen = 1;
+                        if (gNew < shouldTravelArr[j]->g) {
+                            shouldTravelArr[j]->g = gNew;
+                            shouldTravelArr[j]->f = gNew + hNew;
+                            shouldTravelArr[j]->parent = currentNode;
+                        }
+                        break;
+                    }
+                }
+                if (!foundInOpen) {
+                    shouldTravelArr[shouldTravelArrSize++] = newNode;
+                }
+            }
+        }
     }
-    
+    printf("목표에 도달할 수 없습니다.\n");
 }
 
+void* findShortestPath(void* arg) {
+    printf("findShortestPath!\n");
+    while(1) {
+        FindPathTask* findPathTask = dequeue(&findPathQueue);
+        printf("dequeue: %d\n", findPathTask->tableNum);
+
+        aStar(findPathTask);
+        // 로봇 출발 및 복귀가 완료 될 떄까지 대기
+    }
+}
 // aStar를 호출하는 코드를 만들고, aStar 호출 영역을 임계영역으로 지정한다.
 // 첫번째 동작인 테이블로 이동을 위한 aStar 호출 후 버튼 눌림이 올 때 까지 cond_wait
 // 목표위치가 아닌 다른 마커에 도달하면 move_robot.c 내에서 큐 모두 삭제 및 aStar를 호출하여 새 경로 큐에 삽입을 한다.
