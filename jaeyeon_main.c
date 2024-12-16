@@ -12,12 +12,14 @@ pthread_mutex_t enqueueCommendMutex;
 void initStaticValue () {
     initQueue(&findPathQueue);
     initQueue(&moveDestinationQueue);
+    initQueue(&markerRecognitionLogQueue);
     pthread_mutex_init(&enqueueCommendMutex, NULL);
 }
 
 void destroyStaticValue() {
     pthread_mutex_destroy(&findPathQueue.mutex);
     pthread_mutex_destroy(&moveDestinationQueue.mutex);
+    pthread_mutex_destroy(&markerRecognitionLogQueue.mutex);
     pthread_mutex_destroy(&enqueueCommendMutex);
 }
 

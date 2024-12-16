@@ -127,9 +127,9 @@ while True:
     img_mask3 = cv2.inRange(img_hsv, lower_blue, upper_blue) # 범위내의 픽셀들은 흰색, 나머지 검은색
     
     stop = cv2.countNonZero(img_mask3)
-
-    if (stop / size) * 100 > 30:
-        state = "stop"
+    front = "go"
+    if (stop / size) * 100 > 60:
+        front="stop"
         print("stop")
     
     with open(filename, 'w') as f:
@@ -138,7 +138,7 @@ while True:
         f.flush()  # 파일 내용을 즉시 디스크에 기록
 
     # 결과 화면에 표시
-    cv2.putText(im, f"State: {state}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+    cv2.putText(im, f"State: {front+state}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     cv2.putText(im, f"Marker ID: {marker_id}", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
 
     # 마스크 및 원본 이미지 표시

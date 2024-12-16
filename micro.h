@@ -4,12 +4,17 @@
 #include <wiringPi.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <unistd.h>
 
 #define trigPin 27    //gpio 21
 #define echoPin 22 
+
+extern int distanceStopFlag;
+extern pthread_cond_t distanceCond;
+extern pthread_mutex_t distanceMutex;
 extern int soundmode;
-extern int stopFlag;
+
 void* distancecheck(void* arg);
 
 #endif // MICRO_H

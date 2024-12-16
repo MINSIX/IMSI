@@ -34,10 +34,14 @@ while True:
     img_hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
 
     # 빨간색 범위 설정
-    lower_red = np.array([0, 50, 50])
-    upper_red = np.array([40, 255, 255])
-    mask = cv2.inRange(img_hsv, lower_red, upper_red)
+    lower_blue = (0, 50, 50) # hsv 이미지에서 바이너리 이미지로 생성 , 적당한 값 30
+    upper_blue = (25, 255, 255)
+    img_mask = cv2.inRange(img_hsv, lower_blue, upper_blue) # 범위내의 픽셀들은 흰색, 나머지 검은색
+    lower_blue = (155, 50, 50) # hsv 이미지에서 바이너리 이미지로 생성 , 적당한 값 30
+    upper_blue = (180, 255, 255)
+    img_mask2 = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
+    mask = cv2.bitwise_or(img_mask,img_mask2)
     # 화면을 왼쪽과 오른쪽으로 나누기
     height, width = mask.shape
     left_mask = mask[:, :width // 2]  # 왼쪽 절반

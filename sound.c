@@ -3,12 +3,14 @@
 
 void arrivalMusicPlay(int inmode)
 {
-    int i;
     softToneCreate (GPIO);
 
-    for(i = 0 ; i < ARRIVAL_NOTES; i++)
+    for(int i = 0 ; i < ARRIVAL_NOTES; i++)
     {
-        if(soundmode != inmode){
+        pthread_mutex_lock(&modeMutex);
+        int check = (soundmode != inmode);
+        pthread_mutex_unlock(&modeMutex);
+        if(check){
             return;
         }
         softToneWrite (GPIO, arrivalNotes[i]); //
@@ -18,12 +20,14 @@ void arrivalMusicPlay(int inmode)
 
 void dangerMusicPlay(int inmode)
 {
-    int i;
     softToneCreate (GPIO);
 
-    for(i = 0 ; i < DANGER_NOTES; i++)
+    for(int i = 0 ; i < DANGER_NOTES; i++)
     {
-        if(soundmode != inmode){
+        pthread_mutex_lock(&modeMutex);
+        int check = soundmode != inmode;
+        pthread_mutex_unlock(&modeMutex);
+        if(check){
             return;
         }
         softToneWrite (GPIO, dangerNotes[i]); //
@@ -33,12 +37,13 @@ void dangerMusicPlay(int inmode)
 
 void moveMusicPlay(int inmode){
 
-    int i;
     softToneCreate (GPIO);
-    
-    for(i = 0 ; i < MOVE_NOTES; i++)
+    for(int i = 0 ; i < MOVE_NOTES; i++)
     {
-        if(soundmode != inmode){
+        pthread_mutex_lock(&modeMutex);
+        int check = (soundmode != inmode);
+        pthread_mutex_unlock(&modeMutex);
+        if(check){
             return;
         }
         softToneWrite (GPIO, moveNotes[i]); //

@@ -5,7 +5,7 @@
 
 #define MAX_TASK_SIZE 100 // 큐의 최대 크기
 
-#define DEFAULT_ROBOT_DIR 3
+#define DEFAULT_ROBOT_DIR 7
 
 typedef struct TaskQueue{
     void* task[MAX_TASK_SIZE];
@@ -38,6 +38,7 @@ extern pthread_mutex_t enqueueCommendMutex;
 
 extern TaskQueue markerRecognitionLogQueue;
 
+extern int front;
 extern int leftFlag;
 extern int rightFlag;
 extern int markerFlag;
@@ -52,7 +53,8 @@ extern int nowRobotRow;
 extern int nowRobotCol;
 extern int nowRobotDir;
 
-extern void* aStar(void* arg);
+extern void aStar(FindPathTask* findPathTask);
+extern void* findShortestPath(void* arg);
 extern void* startMoveWheelThread(void* arg);
 
 extern void startMove();
@@ -63,5 +65,9 @@ extern int isFull(TaskQueue* q);
 extern void enqueue(TaskQueue* q, void* value);
 extern void* dequeue(TaskQueue* q);
 extern void* peek(TaskQueue* q);
+
+extern int distanceStopFlag;
+extern pthread_cond_t distanceCond;
+extern pthread_mutex_t distanceMutex;
 
 #endif /* __ROBOT_MOVING_ENVENT_H__ */ // 헤더 가드 종료
