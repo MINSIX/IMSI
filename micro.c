@@ -3,9 +3,13 @@
  
 //old #define trigPin 21    //gpio 5
 //old #define echoPin 4    //gpio  J16-pin3 GPIO 23
- 
+int distanceStopFlag = 0;
+pthread_cond_t distanceCond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t distanceMutex;
 void* distancecheck(void* arg)
 {
+    pthread_mutex_init(&distanceMutex,NULL);
+    wiringPiSetupGpio();
     int distance=0;
     int pulse = 0;
     int turnOn = 0;
@@ -15,7 +19,6 @@ void* distancecheck(void* arg)
         
     pinMode (trigPin, OUTPUT);
     pinMode (echoPin, INPUT);
-    
     while(1)
     {
         digitalWrite (trigPin, LOW);
@@ -25,7 +28,6 @@ void* distancecheck(void* arg)
         digitalWrite (trigPin, LOW);
         
         while(digitalRead(echoPin) == LOW);
-        
         startTime = micros();
         
         while(digitalRead(echoPin) == HIGH);
@@ -33,18 +35,25 @@ void* distancecheck(void* arg)
         
         int distance = travelTime / 58;
         
-        //printf( "\nDistance: %dcm\n", distance);
         delay(200);
         if(distance < 10) {
-          soundmode = 2;
           turnOn = 1;
-          stopFlag = 1;
+          soundmode = 2;
+        
+          pthread_mutex_lock(&distanceMutex);
+          distanceStopFlag = 1;
+          pthread_mutex_unlock(&distanceMutex);
         }
         else if(turnOn && distance >= 10){
           soundmode = 3;
-          turnOn = 0;
-          stopFlag = 0;
+          pthread_mutex_lock(&distanceMutex);
+          pthread_cond_broadcast(&distanceCond);
+
+          distanceStopFlag = 0;
+          pthread_mutex_unlock(&distanceMutex);
+          
         }
+
     }
 }
  

@@ -5,6 +5,7 @@
 #include <softTone.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define ARRIVAL_NOTES 10
 #define MOVE_NOTES 24
@@ -12,6 +13,7 @@
 #define GPIO 18
 
 extern int soundmode;
+extern pthread_mutex_t modeMutex;
 
 static int arrivalNotes[ARRIVAL_NOTES] = {
 391,415,440,391,415,440,391,415,440,523

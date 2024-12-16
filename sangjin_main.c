@@ -57,10 +57,19 @@ void *bluetoothThread(void *arg) {
     printf("blutetooth thread \n");
     while (1) {
         int input = bluetoothGate();
+        if(input >= 100){
+            input %= 4;
+            pthread_mutex_lock(&modeMutex);
+            soundmode = input;
+            pthread_mutex_unlock(&modeMutex);
+            continue;
+        }
         printf("enqueue: %d \n", input);
         FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
         findPathTask->tableNum = input;
         enqueue(&findPathQueue, findPathTask);
+
+
     }
     return NULL;
 }
@@ -76,10 +85,12 @@ int main(int argc, char **argv) {
     
     int num_threads = 10;  // 생성할 스레드 개수
     pthread_t threads[num_threads];
-    FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
-    findPathTask->tableNum = 3;
-    enqueue(&findPathQueue, findPathTask);
-
+    // FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
+    // findPathTask->tableNum = 3;
+    // enqueue(&findPathQueue, findPathTask);
+    pthread_mutex_lock(&modeMutex);
+    soundmode = 0;
+    pthread_mutex_unlock(&modeMutex);
     // 사운드 관리 스레드 시작
 
     if (pthread_create(&threads[0], NULL, bluetoothThread, NULL) != 0) {
@@ -90,7 +101,7 @@ int main(int argc, char **argv) {
         perror("사운드 스레드 생성 실패");
         return -1;
     }
-    if (pthread_create(&threads[2], NULL, aStar, NULL) != 0) {
+    if (pthread_create(&threads[2], NULL, findShortestPath, NULL) != 0) {
         perror("Path 스레드 생성 실패");
         return -1;
     }
@@ -98,12 +109,12 @@ int main(int argc, char **argv) {
         perror("Move 스레드 생성 실패");
         return -1;
     }
-    // if (pthread_create(&threads[3], NULL, distancecheck, NULL) != 0) {
-    //     perror("초음파 스레드 생성 실패");
-    //     return -1;
-    // }
+    if (pthread_create(&threads[4], NULL, distancecheck, NULL) != 0) {
+        perror("초음파 스레드 생성 실패");
+        return -1;
+    }
 
-    if (pthread_create(&threads[4],NULL, watch_and_read_file,NULL) != 0) {
+    if (pthread_create(&threads[5],NULL, watch_and_read_file,NULL) != 0) {
         perror("카메라 스레드 생성 실패");
         return -1;
     }
