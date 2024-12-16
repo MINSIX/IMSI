@@ -8,8 +8,8 @@ pthread_cond_t distanceCond = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t distanceMutex;
 void* distancecheck(void* arg)
 {
-    pthread_mutex_init(&distanceMutex,NULL);
     wiringPiSetupGpio();
+    pthread_mutex_init(&distanceMutex,NULL);
     int distance=0;
     int pulse = 0;
     int turnOn = 0;
@@ -29,23 +29,26 @@ void* distancecheck(void* arg)
         
         while(digitalRead(echoPin) == LOW);
         startTime = micros();
-        
         while(digitalRead(echoPin) == HIGH);
         travelTime = micros() - startTime;
-        
+        int presound;
         int distance = travelTime / 58;
-        
         delay(200);
-        if(distance < 10) {
+        if(distance < 25) {
           turnOn = 1;
+          printf("%d \n",distance);
+          if(soundmode != 2){
+            presound = soundmode;
+          }
+          
           soundmode = 2;
-        
+
           pthread_mutex_lock(&distanceMutex);
           distanceStopFlag = 1;
           pthread_mutex_unlock(&distanceMutex);
         }
-        else if(turnOn && distance >= 10){
-          soundmode = 3;
+        else if(turnOn && distance >= 25){
+          soundmode = presound;
           pthread_mutex_lock(&distanceMutex);
           pthread_cond_broadcast(&distanceCond);
 

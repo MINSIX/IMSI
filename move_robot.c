@@ -28,7 +28,7 @@ int markerNum = 0;
 #define RIGHT_PIN_COUNT 4
 #define LEFT_PIN_COUNT 4
 
-#define DEFAULT_DELAY_TIME 7
+#define DEFAULT_DELAY_TIME 3
 #define TURN_DELAY_TIME 3
 #define PLUS_DELAY_TIME 1
 #define MINUS_DELAY_TIME 3
@@ -36,7 +36,7 @@ int markerNum = 0;
 
 #define DELAY_TRANSFER_THRESHOLD_SEC 4
 
-#define ANGLE_45 4100
+#define ANGLE_45 3100
 
 int front = 0;
 int leftFlag = 0;
@@ -145,6 +145,7 @@ void moveWheel(int* pin_arr, int isLeft) {
     time_t rightFlagStartTime = 0;
     
 
+    
 
     printf("nowRobotDir : %d, goalDir : %d\n", nowRobotDir, goalDir);
     
@@ -273,7 +274,7 @@ void moveWheel(int* pin_arr, int isLeft) {
                 // printf("delay_time : %d\n", delay_time);
                 // printf("front -> isLeft : %d, delay_time : %d\n", isLeft, delay_time);
                 
-                moveFront(pin_arr, delay_time*8, i);
+                moveFront(pin_arr, delay_time*16, i);
             } else {
                 // printf("isLeft : %d, delay_time : %d\n", isLeft, delay_time);
                 moveFront(pin_arr, delay_time, i);
@@ -338,6 +339,9 @@ void* startMoveWheelThread(void* arg) {
 
     while(1) {
         MoveDestinationTask* task = dequeue(&moveDestinationQueue);
+        pthread_mutex_lock(&modeMutex);
+        soundmode = 3;
+        pthread_mutex_unlock(&modeMutex);
         printf("dequeue direction\n");
         delay(10);
 
@@ -392,20 +396,34 @@ void* startMoveWheelThread(void* arg) {
         
         // printf("새 경로를 따라 이동을 시작합니다.\n");
             printf("잘못된경로 \n");
+            commandReadyL = 0;
+            commandReadyR = 0;
+            stopFlag = 1;
             // 새로운 경로를 따라 이동
+            pthread_mutex_lock(&modeMutex);
+            soundmode = 2;
+            pthread_mutex_unlock(&modeMutex);
+
+            delay(1000);
+            pthread_mutex_lock(&modeMutex);
+            soundmode = 0;
+            pthread_mutex_unlock(&modeMutex);
+
             return NULL;
-        break; // 루프 탈출, 새로운 경로로 재시작
             }
         }
         delay(20);
         
         // 최종 목표에 도착하였다면 복귀로직 시작
         if (isEmpty(&moveDestinationQueue)) {
-            
+            pthread_mutex_lock(&modeMutex);
+            soundmode = 1;
+            pthread_mutex_unlock(&modeMutex);
             isReturn = isReturn ^ 1;
             if(isReturn) {
                 printf("return!\n");
-                soundmode = 1;
+
+                
 
                 // 로봇 복귀를 위한 경로 탐색 후 동작
                 FindPathTask* findPathTask = (FindPathTask*)malloc(sizeof(FindPathTask));
@@ -413,7 +431,11 @@ void* startMoveWheelThread(void* arg) {
                 aStar(findPathTask);
                 // 10초 대기 후 복귀 동작
                 delay(10000);
-                soundmode = 3;
+            } else {
+                // // 180도 회전 및 dir 수정
+                // moveRight(pin_arr, isLeft, delay_time, ANGLE_45*4);
+                // nowRobotDir = DEFAULT_ROBOT_DIR;
+                // // pthread_cond_broadcast(&waitFindPath);
             }
         }
         // TODO : 작업에 대한 복귀가 끝나서 다음 작업을 들여보내라는 신호를 줘야함
