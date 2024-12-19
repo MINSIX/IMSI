@@ -69,5 +69,10 @@ extern void* peek(TaskQueue* q);
 extern int distanceStopFlag;
 extern pthread_cond_t distanceCond;
 extern pthread_mutex_t distanceMutex;
+extern int waitFindPathFlag;
+extern pthread_cond_t waitFindPath;
+extern pthread_mutex_t waitFindPathMutex;
+
+extern pthread_mutex_t modeMutex;
 
 #endif /* __ROBOT_MOVING_ENVENT_H__ */ // 헤더 가드 종료

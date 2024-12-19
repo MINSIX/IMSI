@@ -22,18 +22,18 @@ void change_marker2pos(int marker,int* row,int*col){
     int i = 0;
     int j = 0;
 
-    int map[8][6] = {
-        {0,100,1,6,0,0},
-        {0,0,8,9,10,2},
-        {0,13,14,15,16,17},
-        {4,19,20,5,22,23},
-        {24,25,26,27,28,29},
-        {0,25,26,27,28,29},
-        {3,25,26,7,28,29}
+    int map[7][4] = {
+        {8,0,0,7},
+        {0,0,0,0},
+        {0,0,0,0},
+        {5,0,0,6},
+        {0,0,0,0},
+        {0,0,0,0},
+        {4,0,0,3}
     };
 
-    for (i = 0;i<8;i++){
-        for (j = 0;j<6;j++){
+    for (i = 0;i<7;i++){
+        for (j = 0;j<4;j++){
             if (map[i][j] == marker){
                 *row = i;
                 *col = j;
@@ -112,9 +112,12 @@ void* watch_and_read_file(){
 
                     marker = atoi(Smark);
 
-                    if (marker == 17 || marker == 37){
+                    if (marker == 17 || marker == 37||marker==22){
                         marker = 0;
                     }
+                    int fault_mask = 0;
+                 if(marker>8)
+                 marker=0;
                     // printf("marker : %d\n",marker);
                     change_marker2pos(marker,&m_row,&m_col);
                     

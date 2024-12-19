@@ -10,11 +10,13 @@
 #define trigPin 27    //gpio 21
 #define echoPin 22 
 
+extern pthread_mutex_t modeMutex;
 extern int distanceStopFlag;
 extern pthread_cond_t distanceCond;
 extern pthread_mutex_t distanceMutex;
 extern int soundmode;
 
+    
 void* distancecheck(void* arg);
 
 #endif // MICRO_H

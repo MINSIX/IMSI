@@ -3,35 +3,26 @@
 #include <math.h>
 #include "robot_moving_event.h"
 
-#define D229_ROW 18
-#define D229_COL 5
+#define FINAL_ROW 7
+#define FINAL_COL 4
 
 #define D229_DEMO_ROW 7
 #define D229_DEMO_COL 4
 
-int nowRobotRow = D229_DEMO_ROW - 1;
-int nowRobotCol = D229_DEMO_COL - 1;
-int nowRobotDir = DEFAULT_ROBOT_DIR;
+int nowRobotRow = 6;
+int nowRobotCol = 3;
+int nowRobotDir = 7;
+pthread_cond_t waitFindPath = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t waitFindPathMutex = PTHREAD_MUTEX_INITIALIZER;
 
-int D229[D229_ROW][D229_COL] = {
-    {-1,  0,  0, 0, -1},
-    {24,  0, 16, 0,  8},
-    {-1,  0,  0, 0, -1},
-    {23,  0, 15, 0,  7},
-    {-1,  0, -1, 0, -1},
-    {22,  0, 14, 0,  6},
-    {-1,  0, -1, 0, -1},
-    {21,  0, 13, 0,  5},
-    {-1,  0, -1, 0, -1},
-    {20,  0, 12, 0,  4},
-    {-1,  0, -1, 0, -1},
-    {19,  0, 11, 0,  3},
-    {-1,  0, -1, 0, -1},
-    {18,  0, 10, 0,  2},
-    {-1,  0, -1, 0, -1},
-    {17,  0,  9, 0,  1},
-    {-1,  0, -1, 0, -1},
-    {-1, -1, -1, 0, -1}
+int finalMap[FINAL_ROW][FINAL_COL] = {
+    {6,  0,  0,  5},
+    {0, -1,  0,  0},
+    {0,  0, -1,  0},
+    {3,  0,  0,  4},
+    {0, -1, -1, -1},
+    {0, -1, -1, -1},
+    {2,  0,  0,  1}
 };
 int D229_Demo[D229_DEMO_ROW][D229_DEMO_COL] = {
     {-1, -1, -1,  4},
@@ -61,9 +52,9 @@ int finalGoalCol = 0;
 
 void tabelNumToCoordinate(int tableNum) {
     int isBreak = 0;
-    for (int i = 0 ; i < D229_DEMO_ROW ; i++) {
-        for (int j = 0 ; j < D229_DEMO_COL ; j++) {
-            if (D229_Demo[i][j] == tableNum) {
+    for (int i = 0 ; i < FINAL_ROW ; i++) {
+        for (int j = 0 ; j < FINAL_COL ; j++) {
+            if (finalMap[i][j] == tableNum) {
                 finalGoalRow = i;
                 finalGoalCol = j;
                 isBreak = 1;
@@ -103,7 +94,7 @@ Node* createNode(int row, int col, int g, int h, Node* parent, int direction) {
 }
 
 int isValid(int row, int col) {
-    return (row >= 0 && row < D229_DEMO_ROW && col >= 0 && col < D229_DEMO_COL && D229_Demo[row][col] != -1);
+    return (row >= 0 && row < FINAL_ROW && col >= 0 && col < FINAL_COL && finalMap[row][col] != -1);
 }
 
 int heuristic(int row, int col, int finalGoalRow, int finalGoalCol) {
@@ -122,14 +113,14 @@ void enqueueDirection(Node* node) {
     if (node->parent == NULL) return;
     enqueueDirection(node->parent);
 
-    if (D229_Demo[node->row][node->col]== 0) {
+    if (finalMap[node->row][node->col]== 0) {
         // 0(길)은 마커가 없음
         printf("road : %d %d\n", node->row, node->col);
         return;
     }
 
     MoveDestinationTask* moveDestinationTask = (MoveDestinationTask*)malloc(sizeof(MoveDestinationTask));
-    moveDestinationTask->markerNum = D229_Demo[node->row][node->col];
+    moveDestinationTask->markerNum = finalMap[node->row][node->col];
     moveDestinationTask->row = node->row;
     moveDestinationTask->col = node->col;
     moveDestinationTask->direction = node->direction;
@@ -144,6 +135,19 @@ int isValidDiagonal(int currentRow, int currentCol, int newRow, int newCol) {
     }
     return 0;
 }
+int isValidVertical(int currentRow, int currentCol, int newRow, int newCol) {
+    if ((currentRow == 0 && currentCol == 2 && newRow == 1 && newCol == 2) ||
+        (currentRow == 1 && currentCol == 2 && newRow == 0 && newCol == 2) ||
+        (currentRow == 1 && currentCol == 3 && newRow == 1 && newCol == 2) ||
+        (currentRow == 1 && currentCol == 2 && newRow == 1 && newCol == 3) ||
+        (currentRow == 2 && currentCol == 0 && newRow == 2 && newCol == 1) ||
+        (currentRow == 2 && currentCol == 1 && newRow == 2 && newCol == 0) ||
+        (currentRow == 3 && currentCol == 1 && newRow == 2 && newCol == 1)  ||
+        (currentRow == 2 && currentCol == 1 && newRow == 3 && newCol == 1)) {
+        return 0;
+    }
+    return 1;
+}
 
 void aStar(FindPathTask* findPathTask) {
     printf("astar!\n");
@@ -153,9 +157,9 @@ void aStar(FindPathTask* findPathTask) {
 
     tabelNumToCoordinate(tableNum);
 
-    Node* shouldTravelArr[D229_DEMO_ROW * D229_DEMO_COL];
+    Node* shouldTravelArr[FINAL_ROW * FINAL_COL];
     int shouldTravelArrSize = 0;
-    Node* visitedArr[D229_DEMO_ROW * D229_DEMO_COL];
+    Node* visitedArr[FINAL_ROW * FINAL_COL];
     int visitedArrSize = 0;
 
     Node* startNode = createNode(startRow, startCol, 0, heuristic(startRow, startCol, finalGoalRow, finalGoalCol), NULL, 0);
@@ -171,7 +175,7 @@ void aStar(FindPathTask* findPathTask) {
         }
 
         Node* currentNode = shouldTravelArr[minIndex];
-        int currentNodeNum = D229_Demo[currentNode->row][currentNode->col];
+        int currentNodeNum = finalMap[currentNode->row][currentNode->col];
         if (currentNode->row == finalGoalRow && currentNode->col == finalGoalCol) {
             printf("Destination reached\n");
 
@@ -196,11 +200,16 @@ void aStar(FindPathTask* findPathTask) {
 
             if (!isValid(newRow, newCol)) continue;
 
-            int newNodeNum = D229_Demo[newRow][newCol];
+            int newNodeNum = finalMap[newRow][newCol];
 
-            // 대각선 이동 제한 조건
-            if ((currentNodeNum == 0 && newNodeNum == 0) && ((i % 2 == 1 && !isValidDiagonal(currentNode->row, currentNode->col, newRow, newCol)))) {
-                continue;
+            // 대각선 및 수직 이동 제한 조건
+            if ((currentNodeNum == 0 && newNodeNum == 0)) {
+                if((i % 2 == 1 && !isValidDiagonal(currentNode->row, currentNode->col, newRow, newCol))) {
+                    continue;
+                }
+                if((i % 2 == 0 && !isValidVertical(currentNode->row, currentNode->col, newRow, newCol))) {
+                    continue;
+                }
             }
 
             // 이미 방문한 노드인지 확인
@@ -362,6 +371,11 @@ void* findShortestPath(void* arg) {
 
         aStar(findPathTask);
         // 로봇 출발 및 복귀가 완료 될 떄까지 대기
+        // pthread_mutex_lock(&waitFindPathMutex);
+        // if(waitFindPathFlag){
+        //     pthread_cond_wait(&waitFindPath, &waitFindPathMutex);
+        // }
+        // pthread_mutex_unlock(&waitFindPathMutex);
     }
 }
 
