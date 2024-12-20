@@ -25,34 +25,12 @@ while True:
 
 
     # 마커 감지 (Aruco)
-    markerImage_RGB = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-    corners_RGB, ids_RGB, rejected_RGB = detector.detectMarkers(markerImage_RGB)
 
     markerImage_GRAY = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     corners_GRAY, ids_GRAY, rejected_GRAY = detector.detectMarkers(markerImage_GRAY)
 
 
-    corners, ids, rejected = detector.detectMarkers(im)
-    
-    lower_blue = (0, 0, 0) # hsv 이미지에서 바이너리 이미지로 생성 , 적당한 값 30
-    upper_blue = (80, 80, 80)
-    marker_mask = cv2.inRange(markerImage_RGB, lower_blue, upper_blue) # 범위내의 픽셀들은 흰색, 나머지 검은색
-
-
-    corners_mask, ids_mask, rejected_mask = detector.detectMarkers(marker_mask)
-
-
-    marker_id = 0  # 기본값: 0
-    
-    marker_id=[i for i in [ids_RGB,ids_GRAY,ids,ids_mask] if i is not None]
-    # 감지된 마커 ID
-
-    if marker_id is not None and marker_id:
-        
-        marker_id = marker_id[0][0][0]
-
-        print(marker_id)
-    if marker_id is not None:
+    if ids_GRAY is not None:
             cv2.aruco.drawDetectedMarkers(markerImage_GRAY,corners_GRAY,ids_GRAY)
 
     cv2.imshow("test",markerImage_GRAY)
@@ -71,42 +49,30 @@ while True:
     mask = cv2.bitwise_or(img_mask,img_mask2)
     # 화면을 왼쪽과 오른쪽으로 나누기
     height, width = mask.shape
-    mask_1 = mask[:height // 3, :width // 3] 
-    mask_2 = mask[:height // 3, width // 3:2*width // 3]  
-    mask_3 = mask[:height // 3, 2*width // 3:] 
-    mask_4 = mask[height // 3: 2* height // 3,  :width // 3]
-    mask_5 = mask[height // 3: 2* height // 3,width // 3:2*width // 3]  
-    mask_6 = mask[height // 3: 2* height // 3,2*width // 3:] 
-    mask_7 = mask[2* height // 3: ,  :width // 3]
-    mask_8 = mask[2* height // 3: ,width // 3:2*width // 3]  
-    mask_9 = mask[2* height // 3: ,2*width // 3:] 
+
+    masks = []
+    # 3x3 영역으로 나누기
+    for i in range(3):
+        for j in range(3):
+            masks.append(mask[i*height//3:(i+1)*height//3, j*width//3:(j+1)*width//3])
+
+    reds = []
+
     # 각 영역에서 빨간색 픽셀 비율 계산
-    red_1 = cv2.countNonZero(mask_1)
-    red_2 = cv2.countNonZero(mask_2)
-    red_3 = cv2.countNonZero(mask_3)
-    red_4 = cv2.countNonZero(mask_4)
-    red_5 = cv2.countNonZero(mask_5)
-    red_6 = cv2.countNonZero(mask_6)
-    red_7 = cv2.countNonZero(mask_7)
-    red_8 = cv2.countNonZero(mask_8)
-    red_9 = cv2.countNonZero(mask_9)
+    for i in range(9):
+        reds.append(cv2.countNonZero(masks[i]))
+
 
     size = height*width/9
 
-    red_1_percentage = (red_1 / size) * 100
-    red_2_percentage = (red_2 / size) * 100
-    red_3_percentage = (red_3 / size) * 100
-    red_4_percentage = (red_4 / size) * 100
-    red_5_percentage = (red_5 / size) * 100
-    red_6_percentage = (red_6 / size) * 100
-    red_7_percentage = (red_7 / size) * 100
-    red_8_percentage = (red_8 / size) * 100
-    red_9_percentage = (red_9 / size) * 100
+    red_percentages = []
 
-    left_wing = [red_1_percentage, red_4_percentage, red_7_percentage]
-    right_wing = [red_3_percentage, red_6_percentage, red_9_percentage]
-    front = [red_1_percentage, red_2_percentage, red_3_percentage]
-    mid = [red_2_percentage, red_5_percentage, red_8_percentage]
+    for i in range(9):
+        red_percentages.append((reds[i] / size) * 100)
+
+    left_wing = [red_percentages[0], red_percentages[3], red_percentages[6]]
+    right_wing = [red_percentages[2], red_percentages[5], red_percentages[8]]
+    front = [red_percentages[0], red_percentages[1], red_percentages[2]]
     # 상태 결정
     state = "None"
     # if abs(left_percentage - right_percentage) < 3:  # 빨간색 비율 차이가 10% 이하라면
